@@ -8,7 +8,9 @@
   "license": "GPL 3.0",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test ./test/*.test.ts"
+    "test": "hardhat test ./test/*.test.ts",
+    "deploy:kovan": "hardhat run --network kovan ./scripts/deploy.ts",
+    "verify:kovan": "hardhat verify --network kovan 0xdE270327e85B7790D4D26618B4994c683d9482cA"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
