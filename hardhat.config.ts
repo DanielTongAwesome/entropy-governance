@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 00:35:06
- * @LastEditTime: 2021-07-13 22:35:26
+ * @LastEditTime: 2021-07-14 16:14:59
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
  * @FilePath: /entropy-governance/hardhat.config.ts
@@ -18,9 +18,8 @@ require("@nomiclabs/hardhat-etherscan");
 import {networks} from "./hardhat.networks";
 require("dotenv").config({  path: require("find-config")("./.env") });
 
-const ADMIN1 = process.env.ADMIN1;
-const ADMIN2 = process.env.ADMIN2;
-const ADMIN3 = process.env.ADMIN3;
+const ACCOUNT = process.env.ACCOUNT;
+const MINTER = process.env.MINTER;
 
 const config = {
   solidity: {
@@ -53,28 +52,14 @@ const config = {
 	},
 
   namedAccounts: {
-    // deployer: {  // check on chainid https://chainid.network/
-    //   default: 0,  // first account as deployer
-    //   1: 0, // Note though that depending on how hardhat network are configured, the account 0 on one network can be different than on another
-    // },
-
-    admin1: {
-      default: ADMIN1,
-      1: ADMIN1
+    account: {
+      default: ACCOUNT,
+      1: ACCOUNT
     },
 
-    admin2: {
-      default: ADMIN2,
+    minter: {
+      default: MINTER,
     },
-
-    admin3: {
-      default: ADMIN3,
-    },
-    
-    currency: {
-      1:"0xdac17f958d2ee523a2206206994597c13d831ec7",
-      42:"0xf3e0d7bf58c5d455d31ef1c2d5375904df525105"
-    }
   },
 
   etherscan: {

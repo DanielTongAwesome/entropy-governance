@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 contract Entropy is ERC20, ERC20Permit {
     using SafeMath for uint;
-
+    
     /// @notice Address which may mint new tokens
     address public minter;
 
@@ -15,7 +15,10 @@ contract Entropy is ERC20, ERC20Permit {
     uint public mintingAllowedAfter;
 
     /// @notice Minimum time between mints
-    uint32 public constant minimumTimeBetweenMints = 1 days * 365;
+    uint public constant minimumTimeBetweenMints = 1 days * 365;
+
+    /// @notice Cap on the percentage of totalSupply that can be minted at each mint
+    uint public constant mintCap = 2;
 
     /// @notice An event thats emitted when the minter address is changed
     event MinterChanged(address minter, address newMinter);
@@ -26,8 +29,10 @@ contract Entropy is ERC20, ERC20Permit {
      */
     constructor(address account, address minter_, uint mintingAllowedAfter_) ERC20("Entropy", "ERP") ERC20Permit("Entropy") {
         require(account != address(0),                  "ERPERC20::constructor: account is zero address");
+        require(minter_ != address(0),                  "ERPERC20::constructor: minter_ is zero address");
         require(mintingAllowedAfter_ >= block.timestamp,"ERPERC20::constructor: minting can only begin after deployment");
         minter = minter_;
+        mintingAllowedAfter = mintingAllowedAfter_;
         _mint(account, 1000000000 * 10 ** decimals());
     }
 
@@ -54,7 +59,11 @@ contract Entropy is ERC20, ERC20Permit {
         // record the mint
         mintingAllowedAfter = block.timestamp.add(minimumTimeBetweenMints);
 
+        // cannot mint more than 2% of total supply
+        uint limitAmount = totalSupply().mul(mintCap).div(100);
+        require(amount <= limitAmount, "ERPERC20::mint: exceeded mint cap");
+
         // mint the amount
-        _mint(dst, amount ** decimals());
+        _mint(dst, amount);
     }
 }
