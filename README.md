@@ -6,8 +6,8 @@
  * @Description: 
  * @FilePath: /entropy-governance/README.md
 -->
-<a href="https://www.entropyfi.com/">
-    <img alt="entropyfi" src="./public/favicon.ico" style="width: 60px; height: 60px;" align="left">
+<a href="https://www.entropyfi.com" target="_blank">
+    <img alt="entropyfi" src="https://raw.githubusercontent.com/entropyfi/entropy-resource/master/Entropyfi.svg" width="120px" height=:"120px" align="left">
 </a>
 
 <div align="left">
