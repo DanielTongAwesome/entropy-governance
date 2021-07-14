@@ -24,7 +24,7 @@ const ADMIN3 = process.env.ADMIN3;
 
 const config = {
   solidity: {
-    version: "0.7.6",
+    version: "0.8.2",
     settings: {
       optimizer: {
         enabled: true,
@@ -41,11 +41,16 @@ const config = {
 	},
   
   paths: {
-    sources: "./src/contracts",
-    artifacts: "./src/artifacts"
-    // tests: "./test/mainnet" // test on forked mainnet
+    sources: "./contracts",
+    artifacts: "./artifacts",
+    // tests: "./test" 
     // deploy: 'deploy',
   },
+
+  typechain: {
+		outDir: "types",
+		target: "ethers-v5",
+	},
 
   namedAccounts: {
     // deployer: {  // check on chainid https://chainid.network/
@@ -70,11 +75,6 @@ const config = {
       1:"0xdac17f958d2ee523a2206206994597c13d831ec7",
       42:"0xf3e0d7bf58c5d455d31ef1c2d5375904df525105"
     }
-  },
-
-  typechain: {
-    outDir: "types",
-    target: "ethers-v5"
   },
 
   etherscan: {
