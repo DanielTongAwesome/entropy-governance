@@ -1,0 +1,87 @@
+/*
+ * @Author: Zitian(Daniel) Tong
+ * @Date: 2021-07-13 00:35:06
+ * @LastEditTime: 2021-07-14 16:14:59
+ * @LastEditors: Zitian(Daniel) Tong
+ * @Description: 
+ * @FilePath: /entropy-governance/hardhat.config.ts
+ */
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-waffle";
+import "@typechain/hardhat";
+import "hardhat-deploy";
+import "hardhat-contract-sizer";
+
+
+require("@nomiclabs/hardhat-etherscan");
+
+import {networks} from "./hardhat.networks";
+require("dotenv").config({  path: require("find-config")("./.env") });
+
+const ACCOUNT = process.env.ACCOUNT;
+const MINTER = process.env.MINTER;
+
+const config = {
+  solidity: {
+    version: "0.8.2",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      },
+      evmVersion: "istanbul"
+    }
+  },
+
+  contractSizer: {
+		alphaSort: true,
+		runOnCompile: true,
+		disambiguatePaths: false,
+	},
+  
+  paths: {
+    sources: "./contracts",
+    artifacts: "./artifacts",
+    // tests: "./test" 
+    // deploy: 'deploy',
+  },
+
+  typechain: {
+		outDir: "types",
+		target: "ethers-v5",
+	},
+
+  namedAccounts: {
+    account: {
+      default: ACCOUNT,
+      1: ACCOUNT
+    },
+
+    minter: {
+      default: MINTER,
+    },
+  },
+
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API
+
+  },
+
+  networks,
+
+  mocha: {
+    timeout: 30000
+  },
+
+  // external: process.env.HARDHAT_FORK
+  //   ? {
+  //       deployments: {
+  //         // process.env.HARDHAT_FORK will specify the network that the fork is made from.
+  //         // these lines allow it to fetch the deployments from the network being forked from both for node and deploy task
+  //         hardhat: ['deployments/' + process.env.HARDHAT_FORK],
+  //         localhost: ['deployments/' + process.env.HARDHAT_FORK],
+  //       },
+  //     }: undefined,
+};
+
+module.exports = config;

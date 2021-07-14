@@ -1,0 +1,35 @@
+{
+  "name": "entropy-governance",
+  "version": "1.0.0",
+  "description": "entropy defi project governance token related smart contracts",
+  "main": "index.js",
+  "repository": "git@github.com:entropyfi/entropy-governance.git",
+  "author": "DanielTongAwesome <danieltongubc@gmail.com>",
+  "license": "GPL 3.0",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test ./test/*.test.ts",
+    "deployToken:kovan": "hardhat run --network kovan ./scripts/deploy_token.ts",
+    "verifyToken:kovan": "hardhat verify --network kovan 0x8fC8d4d7d51d860c0ab6b81cD6314aa08f02987B \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1626393571"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^2.1.4",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
+    "@openzeppelin/contracts": "^4.2.0",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.1.2",
+    "@types/mocha": "^8.2.3",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "dotenv": "^10.0.0",
+    "ethereum-waffle": "^3.0.0",
+    "ethers": "^5.0.0",
+    "find-config": "^1.0.0",
+    "hardhat": "^2.4.3",
+    "hardhat-contract-sizer": "^2.0.3",
+    "hardhat-deploy": "^0.8.11",
+    "ts-node": "^10.1.0",
+    "typechain": "^5.1.1"
+  }
+}
