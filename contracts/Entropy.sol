@@ -24,11 +24,9 @@ contract Entropy is ERC20, ERC20Permit {
      * @notice Construct a new ERP token
      * @param account The initial account to grant all the tokens
      */
-    constructor(address account, address minter_, uint mintingAllowedAfter_) 
-        ERC20("Entropy", "ERP") ERC20Permit("Entropy") 
-    {
-        require(account != address(0), "ERPERC20::constructor: account is zero address");
-        require(mintingAllowedAfter_ >= block.timestamp, "ERPERC20::constructor: minting can only begin after deployment");
+    constructor(address account, address minter_, uint mintingAllowedAfter_) ERC20("Entropy", "ERP") ERC20Permit("Entropy") {
+        require(account != address(0),                  "ERPERC20::constructor: account is zero address");
+        require(mintingAllowedAfter_ >= block.timestamp,"ERPERC20::constructor: minting can only begin after deployment");
         minter = minter_;
         _mint(account, 1000000000 * 10 ** decimals());
     }
