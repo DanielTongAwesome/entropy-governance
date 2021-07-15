@@ -10,7 +10,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test ./test/*.test.ts",
     "deployToken:kovan": "hardhat run --network kovan ./scripts/deploy_token.ts",
-    "verifyToken:kovan": "hardhat verify --network kovan 0x8fC8d4d7d51d860c0ab6b81cD6314aa08f02987B \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1626393571"
+    "verifyToken:kovan": "hardhat verify --network kovan 0xD7E072160a4b14c12B1A2a4F40242A97679eafD0 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1626393571"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
