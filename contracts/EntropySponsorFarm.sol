@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Entropy.sol";
 
-contract EntropyFarm is Ownable {
+contract EntropySponsorFarm is Ownable {
     using SafeMath for uint;
     
     ///@notice Info of each user
@@ -131,11 +131,28 @@ contract EntropyFarm is Ownable {
 
         emit LogSetPool(_pid, _allocPoint);
     }
+    
+    /// @notice View function to see pending ENTROPY on frontend.
+    /// @param _pid     The index of the pool. See `poolInfo`.
+    /// @param _user    Address of user.
+    /// @return pending SUSHI reward for a given user.
+    function pendingEntropy (uint _pid, address _user) external view returns (uint pending) {
+        PoolInfo memory pool = poolInfo[_pid];
+        UserInfo memory user = userInfo[_pid][_user];
+        uint accEntropyPerShare = pool.accEntropyPerShare;
+        uint sponsorSupply = pool.sponsorToken.balanceOf(address(this));
+        if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
+            uint blocks = block.number.sub(pool.lastRewardBlock);
+            uint entropyReward = blocks.mul(entropyPerBlock).mul(pool.allocPoint) / totalAllocPoint;
+            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(1e12) / sponsorSupply);
+        }
+        pending = user.amount.mul(accEntropyPerShare).div(1e12).sub(user.rewardDebt);
+    }
 
     ///@notice Return reward multiplier over the given _from to _to block.
     ///@param _from The starting block number
     ///@param _to   The ending block number
-    function getMultiplier(
+    function getMultiplier (
         uint _from, 
         uint _to
     ) public view returns (uint) {
@@ -155,7 +172,7 @@ contract EntropyFarm is Ownable {
     }
 
      ///@notice Update reward vairables for all pools. Be careful of gas spending!
-    function massUpdatePools() public {
+    function massUpdatePools () public {
         uint length = poolInfo.length;
         for (uint pid = 0; pid < length; ++pid) {
             updatePool(pid);
@@ -164,7 +181,7 @@ contract EntropyFarm is Ownable {
 
     ///@notice Update reward variables of the given pool to be up-to-date.
     ///@param _pid  The index of the pool
-    function updatePool(uint _pid) public {
+    function updatePool (uint _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
 
         if (block.number <= pool.lastRewardBlock) {
@@ -193,7 +210,7 @@ contract EntropyFarm is Ownable {
         uint _pid,
         uint _amount
     ) public {
-        PoolInfo storage pool = poolInfo[_pid];
+        PoolInfo memory  pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
@@ -216,7 +233,7 @@ contract EntropyFarm is Ownable {
         uint _pid,
         uint _amount
     ) public {
-        PoolInfo storage pool = poolInfo[_pid];
+        PoolInfo memory  pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(_amount <= user.amount, "FARM: NOT ENOUGH BALANCE");
         updatePool(_pid);
@@ -238,7 +255,7 @@ contract EntropyFarm is Ownable {
     ///@notice Withdraw without caring about rewards. EMERGENCY ONLY.
     ///@param _pid  The index of the pool
     function emergencyWithdraw (uint _pid) public {
-        PoolInfo storage pool = poolInfo[_pid];
+        PoolInfo memory  pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         
         uint userAmount = user.amount;
@@ -253,7 +270,7 @@ contract EntropyFarm is Ownable {
     ///@notice Harvest the reward entropy token
     ///@param _pid  The index of the pool
     function harvest (uint _pid) public {
-        PoolInfo storage pool = poolInfo[_pid];
+        PoolInfo memory  pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
