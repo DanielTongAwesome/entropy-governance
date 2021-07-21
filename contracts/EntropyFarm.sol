@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Entropy.sol";
 
-contract SponsorFarm is Ownable {
+contract EntropyFarm is Ownable {
     using SafeMath for uint;
     
     ///@notice Info of each user
@@ -17,10 +17,10 @@ contract SponsorFarm is Ownable {
     }
     // How to calculate user pending harvest reward:
     //
-    //   pending reward = (user.amount * pool.accSushiPerShare) - user.rewardDebt
+    //   pending reward = (user.amount * pool.accEntropyPerShare) - user.rewardDebt
     //
     // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-    //   1. The pool's `accSushiPerShare` (and `lastRewardBlock`) gets updated.
+    //   1. The pool's `accEntropyPerShare` (and `lastRewardBlock`) gets updated.
     //   2. User receives the pending reward sent to his/her address.
     //   3. User's `amount` gets updated.
     //   4. User's `rewardDebt` gets updated.
@@ -41,12 +41,15 @@ contract SponsorFarm is Ownable {
     uint public entropyPerBlock;
     // Bonus multiplier for early Entropy makers
     uint public constant BONUS_MULTIPLIER = 10;
+
     // Info of each pool
     PoolInfo[] public poolInfo;
     // Info of each user that stakes sponsor tokens
     mapping(uint => mapping(address => UserInfo)) public userInfo;
+    
     // Info of sponsor token already in pool or not
     mapping(address => bool) public isTokenInPool;
+    
     // Total allocation points. must be the sum of all allocation points in all pools
     uint public totalAllocPoint = 0;
     // The block number when Entropy mining starts
@@ -54,16 +57,18 @@ contract SponsorFarm is Ownable {
     
     event Deposit   (address indexed user, uint indexed pid, uint amount);
     event Withdraw  (address indexed user, uint indexed pid, uint amount);
-    event Harvest   (address indexed user, uint indexed pid, uint amount);
-    event EmergencyWithdraw (
-        address indexed user,
-        uint indexed pid,
-        uint amount
-    );
+    event Harvest   (address indexed user, uint indexed pid, uint entropyAmount);
+    event EmergencyWithdraw (address indexed user, uint indexed pid, uint amount);
+    event LogPoolAddition   (uint indexed pid, uint allocPoint);
+    event LogSetPool        (uint indexed pid, uint allocPoint);
+    event LogUpdatePool     (uint indexed pid, uint lastRewardBlock, uint sponsorSupply, uint accEntropyPerShare);
 
-
+    ///@param _entropy          Entropy token
+    ///@param _entropyPerBlock  The amount of entropy token per block
+    ///@param _startBlock       Starting block of farming
+    ///@param _bonusEndBlock    Ending block of farming
     constructor (
-        Entropy _entropy,
+        IERC20 _entropy,
         uint _entropyPerBlock,
         uint _startBlock,
         uint _bonusEndBlock
@@ -74,51 +79,62 @@ contract SponsorFarm is Ownable {
         bonusEndBlock = _bonusEndBlock;
     }
 
+    ///@notice Returns the number of pools
     function poolLength() external view returns (uint) {
         return poolInfo.length;
     }
 
     ///@notice Add a new sponsor token to the pool. Can only be called by owner.
+    ///@param _allocPoint   AP of the new pool
+    ///@param _sponsorToken Address of sponsor ERC-20 token
+    ///@param _withUpdate   if you add 3 pools -> make sure the last one set to TRUE
     function add (
         uint _allocPoint,
         address _sponsorToken,
         bool _withUpdate
     ) public onlyOwner {
+        require(_sponsorToken != address(0),           "FARM: INPUT ZERO TOKEN ADDRESS");
         require(isTokenInPool[_sponsorToken] == false, "FARM: TOKEN ALREADY IN POOL");
         isTokenInPool[_sponsorToken] = true;
-        IERC20 sponsorERC20 = IERC20(_sponsorToken);
 
-        if  (_withUpdate) {
+        if (_withUpdate) {
             massUpdatePools();
         }
 
         uint lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
-        poolInfo.push(
-            PoolInfo({
-                sponsorToken:       sponsorERC20,
-                allocPoint:         _allocPoint,
-                lastRewardBlock:    lastRewardBlock,
-                accEntropyPerShare: 0
-            })
-        );
+        poolInfo.push(PoolInfo({
+            sponsorToken:       IERC20(_sponsorToken),
+            allocPoint:         _allocPoint,
+            lastRewardBlock:    lastRewardBlock,
+            accEntropyPerShare: 0
+        }));
+
+        emit LogPoolAddition(poolInfo.length.sub(1), _allocPoint);
     }
 
-    // Update the given pool's ENTROPY allocation point. Can only be called by the owner
+    ///@notice  Update the given pool's ENTROPY allocation point. Can only be called by the owner
+    ///@param _pid  The index of the pool. See 'poolInfo'
+    ///@param _allocPoint   New AP of the pool
+    ///@param _withUpdate   To mass update or not
     function set (
         uint _pid,
         uint _allocPoint,
         bool _withUpdate
     ) public onlyOwner {
-        if  (_withUpdate) {
+        if (_withUpdate) {
             massUpdatePools();
         }
 
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
         poolInfo[_pid].allocPoint = _allocPoint;
+
+        emit LogSetPool(_pid, _allocPoint);
     }
 
-    // Return reward multiplier over the given _from to _to block.  
+    ///@notice Return reward multiplier over the given _from to _to block.
+    ///@param _from The starting block number
+    ///@param _to   The ending block number
     function getMultiplier(
         uint _from, 
         uint _to
@@ -138,7 +154,7 @@ contract SponsorFarm is Ownable {
         }
     }
 
-     // Update reward vairables for all pools. Be careful of gas spending!
+     ///@notice Update reward vairables for all pools. Be careful of gas spending!
     function massUpdatePools() public {
         uint length = poolInfo.length;
         for (uint pid = 0; pid < length; ++pid) {
@@ -146,7 +162,8 @@ contract SponsorFarm is Ownable {
         }
     }
 
-    // Update reward variables of the given pool to be up-to-date.
+    ///@notice Update reward variables of the given pool to be up-to-date.
+    ///@param _pid  The index of the pool
     function updatePool(uint _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
 
@@ -156,6 +173,7 @@ contract SponsorFarm is Ownable {
 
         uint sponsorSupply = pool.sponsorToken.balanceOf(address(this));
         if (sponsorSupply == 0) {
+            // if no sponsor supply -> no need to update
             pool.lastRewardBlock = block.number;
             return;
         }
@@ -164,9 +182,13 @@ contract SponsorFarm is Ownable {
         uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
         pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(1e12).div(sponsorSupply));
         pool.lastRewardBlock = block.number;
+
+        emit LogUpdatePool(_pid, pool.lastRewardBlock, sponsorSupply, pool.accEntropyPerShare);
     }
 
-    // Deposit sponsor token to Farm contract for Entropy allocation
+    ///@notice Deposit sponsor token to Farm contract for Entropy allocation
+    ///@param _pid      The index of the pool
+    ///@param _amount   The total amount of sponsor token   
     function deposit (
         uint _pid,
         uint _amount
@@ -180,32 +202,41 @@ contract SponsorFarm is Ownable {
             entropy.transfer(msg.sender, pending);
         }
 
-        pool.sponsorToken.transferFrom(address(msg.sender), address(this), _amount);
+        pool.sponsorToken.transferFrom(msg.sender, address(this), _amount);
         user.amount = user.amount.add(_amount);
         user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
         
         emit Deposit(msg.sender, _pid, _amount); 
     }
     
+    ///@notice Withdraw sponsor token from Entropy Farm
+    ///@param _pid      The index of the pool
+    ///@param _amount   The amount of sponsor token
     function withdraw (
         uint _pid,
         uint _amount
     ) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
+        require(_amount <= user.amount, "FARM: NOT ENOUGH BALANCE");
         updatePool(_pid);
 
+        // harvest entropy token
         uint pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
-        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
-        user.amount = user.amount.sub(_amount);
         safeEntropyTransfer(msg.sender, pending);
-        
-        pool.sponsorToken.transfer(address(msg.sender), _amount);
+    
+        emit Harvest(msg.sender, _pid, pending);
+
+        // withdraw lp token
+        user.amount = user.amount.sub(_amount);
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+        pool.sponsorToken.transfer(msg.sender, _amount);
 
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    // Withdraw without caring about rewards. EMERGENCY ONLY.
+    ///@notice Withdraw without caring about rewards. EMERGENCY ONLY.
+    ///@param _pid  The index of the pool
     function emergencyWithdraw (uint _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -214,25 +245,28 @@ contract SponsorFarm is Ownable {
         user.amount = 0;
         user.rewardDebt = 0;
         
-        pool.sponsorToken.transfer(address(msg.sender), userAmount);
+        pool.sponsorToken.transfer(msg.sender, userAmount);
         
         emit EmergencyWithdraw(msg.sender, _pid, user.amount);
     }
 
-    // harvest the reward entropy token
+    ///@notice Harvest the reward entropy token
+    ///@param _pid  The index of the pool
     function harvest (uint _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
         uint pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
-        user.rewardDebt = pending;
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
         safeEntropyTransfer(msg.sender, pending);
 
         emit Harvest(msg.sender, _pid, pending);
     } 
 
-    // Safe entropy token transfer function, just in case if rounding error causes pool to not have enough entropy tokens.
+    ///@notice Safe entropy token transfer function, just in case if rounding error causes pool to not have enough entropy tokens
+    ///@param _to       recipient
+    ///@param _amount   amount of entropy token
     function safeEntropyTransfer(address _to, uint _amount) internal {
         uint entropyLevel = entropy.balanceOf(address(this));
         if (_amount > entropyLevel) {
