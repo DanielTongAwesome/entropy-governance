@@ -41,6 +41,8 @@ contract EntropySponsorFarm is Ownable {
     uint public entropyPerBlock;
     // Bonus multiplier for early Entropy makers
     uint public constant BONUS_MULTIPLIER = 10;
+    // Constant for calculation precision
+    uint private constant ACC_ENTROPY_PRECISION = 1e12;
 
     // Info of each pool
     PoolInfo[] public poolInfo;
@@ -54,7 +56,7 @@ contract EntropySponsorFarm is Ownable {
     uint public totalAllocPoint = 0;
     // The block number when Entropy mining starts
     uint public startBlock;
-    
+
     event Deposit   (address indexed user, uint indexed pid, uint amount);
     event Withdraw  (address indexed user, uint indexed pid, uint amount);
     event Harvest   (address indexed user, uint indexed pid, uint entropyAmount);
@@ -144,9 +146,9 @@ contract EntropySponsorFarm is Ownable {
         if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
             uint blocks = block.number.sub(pool.lastRewardBlock);
             uint entropyReward = blocks.mul(entropyPerBlock).mul(pool.allocPoint) / totalAllocPoint;
-            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(1e12) / sponsorSupply);
+            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION) / sponsorSupply);
         }
-        pending = user.amount.mul(accEntropyPerShare).div(1e12).sub(user.rewardDebt);
+        pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
     }
 
     ///@notice Return reward multiplier over the given _from to _to block.
@@ -197,7 +199,7 @@ contract EntropySponsorFarm is Ownable {
 
         uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(1e12).div(sponsorSupply));
+        pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
         pool.lastRewardBlock = block.number;
 
         emit LogUpdatePool(_pid, pool.lastRewardBlock, sponsorSupply, pool.accEntropyPerShare);
@@ -215,13 +217,13 @@ contract EntropySponsorFarm is Ownable {
         updatePool(_pid);
 
         if (user.amount > 0) {
-            uint pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
+            uint pending = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
             entropy.transfer(msg.sender, pending);
         }
 
         pool.sponsorToken.transferFrom(msg.sender, address(this), _amount);
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION);
         
         emit Deposit(msg.sender, _pid, _amount); 
     }
@@ -239,14 +241,14 @@ contract EntropySponsorFarm is Ownable {
         updatePool(_pid);
 
         // harvest entropy token
-        uint pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
+        uint pending = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
         safeEntropyTransfer(msg.sender, pending);
     
         emit Harvest(msg.sender, _pid, pending);
 
         // withdraw lp token
         user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION);
         pool.sponsorToken.transfer(msg.sender, _amount);
 
         emit Withdraw(msg.sender, _pid, _amount);
@@ -274,8 +276,8 @@ contract EntropySponsorFarm is Ownable {
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
-        uint pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
-        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+        uint pending = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION);
         safeEntropyTransfer(msg.sender, pending);
 
         emit Harvest(msg.sender, _pid, pending);
