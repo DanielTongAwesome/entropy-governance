@@ -201,7 +201,8 @@ contract EntropySponsorFarm is Ownable {
 
     ///@notice Deposit sponsor token to Farm contract for Entropy allocation
     ///@param _pid      The index of the pool
-    ///@param _amount   The total amount of sponsor token   
+    ///@param _amount   The total amount of sponsor token
+    ///@param _to       The address if the recipient
     function deposit (uint _pid, uint _amount, address _to) public {
         require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
         PoolInfo memory  pool = updatePool(_pid);
