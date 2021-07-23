@@ -10,7 +10,6 @@ import "./Entropy.sol";
 contract EntropyLiquidityFarm is Ownable {
     using SafeMath for uint;
 
-
     ///@notice Info of each user
     struct UserInfo {
         uint amount;        // Hpw many lp token the user has provided
@@ -58,7 +57,6 @@ contract EntropyLiquidityFarm is Ownable {
     ///@notice The block number when Entropy mining starts
     uint public startBlock;
 
-
     event Deposit   (address indexed user, uint indexed pid, uint amount, address indexed to);
     event Withdraw  (address indexed user, uint indexed pid, uint amount, address indexed to);
     event Harvest   (address indexed user, uint indexed pid, uint entropyAmount, address indexed to);
@@ -70,6 +68,8 @@ contract EntropyLiquidityFarm is Ownable {
 
     ///@param _entropy          The Entropy token contract address
     ///@param _entropyPerBlock  Entropy token assigned to transfer per block
+    ///@param _startBlock       Starting block of farming
+    ///@param _bonusEndBlock    Ending block of farming
     constructor (
         IERC20 _entropy, 
         uint _entropyPerBlock,
@@ -180,6 +180,8 @@ contract EntropyLiquidityFarm is Ownable {
         }
     }
 
+    ///@notice Update reward variables of the given pool to be up-to-date.
+    ///@param _pid  The index of the pool
     function updatePool (uint _pid) public returns (PoolInfo memory pool) {
         pool = poolInfo[_pid];
         if (block.number > pool.lastRewardBlock) {
@@ -220,9 +222,10 @@ contract EntropyLiquidityFarm is Ownable {
     ///@param _amount   The amount of lp token
     ///@param _to       The address of recipient
     function withdraw (uint _pid, uint _amount, address _to) external {
-        require(_to != address(0), "LPFARM: INPUT ZERO TOKEN ADDRESS");
+        require(_to != address(0),      "LPFARM: INPUT ZERO TOKEN ADDRESS");
         PoolInfo memory  pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][_to];
+        require(_amount <= user.amount, "LPFARM: NOT ENOUGH BALANCE");
 
          // Update user info
         user.rewardDebt = user.rewardDebt.sub(_amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION));

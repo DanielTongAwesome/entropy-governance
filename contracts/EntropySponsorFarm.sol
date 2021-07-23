@@ -222,7 +222,7 @@ contract EntropySponsorFarm is Ownable {
     ///@param _amount   The amount of sponsor token
     ///@param _to       The address of recipient
     function withdraw (uint _pid, uint _amount, address _to) public {
-        require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
+        require(_to != address(0),      "SPFARM: INPUT ZERO TOKEN ADDRESS");
         PoolInfo memory  pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(_amount <= user.amount, "SPFARM: NOT ENOUGH BALANCE");
