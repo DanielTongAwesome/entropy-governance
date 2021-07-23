@@ -41,7 +41,7 @@ contract EntropyLiquidityFarm is Ownable {
     // Bonus multiplier for early Entropy makers
     uint public constant BONUS_MULTIPLIER = 10;
     ///@dev Extra decimals for pool's accEntropyPerShare attribute. Needed in order to accomodate different types of LPs.
-    uint private constant ACC_ENTROPY_PRECISION = 1e12;
+    uint private constant ACC_ENTROPY_PRECISION = 1e18;
     
     ///@notice Address of the LP token for each liquidity farm pool
     IERC20[] public lpToken;

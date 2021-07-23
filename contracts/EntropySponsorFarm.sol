@@ -41,7 +41,7 @@ contract EntropySponsorFarm is Ownable {
     // Bonus multiplier for early Entropy makers
     uint public constant BONUS_MULTIPLIER = 10;
     // Constant for calculation precision
-    uint private constant ACC_ENTROPY_PRECISION = 1e12;
+    uint private constant ACC_ENTROPY_PRECISION = 1e18;
 
     ///@notice Address of the sponsor token for each sponsor farm pool
     IERC20[] public sponsorToken;

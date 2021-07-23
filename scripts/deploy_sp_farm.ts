@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-07-23 01:17:51
+ * @LastEditTime: 2021-07-23 02:27:23
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
  * @FilePath: /entropy-governance/scripts/deploy_sp_farm.ts
@@ -11,6 +11,7 @@ const { ethers, getChainId, waffle, getNamedAccounts} = hre;
 const { getContractFactory } = ethers;
 import { chainName } from "./constants";
 import { BigNumber } from "ethers";
+import { parseEther } from "ethers/lib/utils";
 
 require("dotenv").config({ path: require("find-config")("../.env") });
 
