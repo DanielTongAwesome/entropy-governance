@@ -64,7 +64,7 @@ contract EntropyLiquidityFarm is Ownable {
     event Harvest   (address indexed user, uint indexed pid, uint entropyAmount, address indexed to);
     event EmergencyWithdraw (address indexed user, uint indexed pid, uint amount, address indexed to);
     event LogPoolAddition   (uint indexed pid, uint allocPoint, IERC20 indexed lpToken);
-    event LogSetPoool       (uint indexed pid, uint allocPoint);
+    event LogSetPool        (uint indexed pid, uint allocPoint);
     event LogUpdatePool     (uint indexed pid, uint lastRewardBlock, uint lpSupply, uint accEntropyPerShare);
     event SetEntropyPerBlock(uint entropyPerBlock);
 
@@ -129,28 +129,10 @@ contract EntropyLiquidityFarm is Ownable {
     function set (uint _pid, uint _allocPoint) external onlyOwner {
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
         poolInfo[_pid].allocPoint = _allocPoint;
-        emit LogSetPoool(_pid, _allocPoint);
+        emit LogSetPool(_pid, _allocPoint);
     }
 
-    /// @notice View function to see pending ENTROPY on frontend.
-    /// @param _pid     The index of the pool. See `poolInfo`.
-    /// @param _user    Address of user.
-    /// @return pending SUSHI reward for a given user.
-    function pendingEntropy (uint _pid, address _user) external view returns (uint pending) {
-        PoolInfo memory  pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][_user];
-        
-        uint accEntropyPerShare = pool.accEntropyPerShare;
-        uint lpSupply = lpToken[_pid].balanceOf(address(this));
-        if (block.number > pool.lastRewardBlock && lpSupply > 0 && totalAllocPoint > 0) {
-            uint blocks = block.number.sub(pool.lastRewardBlock);
-            uint entropyReward = blocks.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(lpSupply));
-        }
-        pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
-    }
-
-        ///@notice Return reward multiplier over the given _from to _to block.
+    ///@notice Return reward multiplier over the given _from to _to block.
     ///@param _from The starting block number
     ///@param _to   The ending block number
     function getMultiplier (
@@ -172,6 +154,24 @@ contract EntropyLiquidityFarm is Ownable {
         }
     }
 
+    /// @notice View function to see pending ENTROPY on frontend.
+    /// @param _pid     The index of the pool. See `poolInfo`.
+    /// @param _user    Address of user.
+    /// @return pending SUSHI reward for a given user.
+    function pendingEntropy (uint _pid, address _user) external view returns (uint pending) {
+        PoolInfo memory pool = poolInfo[_pid];
+        UserInfo memory user = userInfo[_pid][_user];
+        
+        uint accEntropyPerShare = pool.accEntropyPerShare;
+        uint lpSupply = lpToken[_pid].balanceOf(address(this));
+        if (block.number > pool.lastRewardBlock && lpSupply > 0 && totalAllocPoint > 0) {
+            uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+            uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(lpSupply));
+        }
+        pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
+    }
+
     ///@notice Update reward vairables for all pools. Be careful of gas spending!
     function massUpdateAllPools () public {
         uint len = poolInfo.length;
@@ -185,9 +185,8 @@ contract EntropyLiquidityFarm is Ownable {
         if (block.number > pool.lastRewardBlock) {
             uint lpSupply = lpToken[_pid].balanceOf(address(this));
             if (lpSupply > 0 && totalAllocPoint > 0) {
-                uint blocks = block.number.sub(pool.lastRewardBlock);
                 uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-                uint entropyReward = multiplier.mul(blocks).mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+                uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
                 pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(lpSupply));
             }
             pool.lastRewardBlock = block.number;

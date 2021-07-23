@@ -132,24 +132,6 @@ contract EntropySponsorFarm is Ownable {
         emit LogSetPool(_pid, _allocPoint);
     }
     
-    /// @notice View function to see pending ENTROPY on frontend.
-    /// @param _pid     The index of the pool. See `poolInfo`.
-    /// @param _user    Address of user.
-    /// @return pending SUSHI reward for a given user.
-    function pendingEntropy (uint _pid, address _user) external view returns (uint pending) {
-        PoolInfo memory pool = poolInfo[_pid];
-        UserInfo memory user = userInfo[_pid][_user];
-
-        uint accEntropyPerShare = pool.accEntropyPerShare;
-        uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
-        if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
-            uint blocks = block.number.sub(pool.lastRewardBlock);
-            uint entropyReward = blocks.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
-        }
-        pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
-    }
-
     ///@notice Return reward multiplier over the given _from to _to block.
     ///@param _from The starting block number
     ///@param _to   The ending block number
@@ -172,6 +154,24 @@ contract EntropySponsorFarm is Ownable {
         }
     }
 
+     /// @notice View function to see pending ENTROPY on frontend.
+    /// @param _pid     The index of the pool. See `poolInfo`.
+    /// @param _user    Address of user.
+    /// @return pending SUSHI reward for a given user.
+    function pendingEntropy (uint _pid, address _user) external view returns (uint pending) {
+        PoolInfo memory pool = poolInfo[_pid];
+        UserInfo memory user = userInfo[_pid][_user];
+
+        uint accEntropyPerShare = pool.accEntropyPerShare;
+        uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
+        if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
+            uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+            uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
+        }
+        pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
+    }
+
      ///@notice Update reward vairables for all pools. Be careful of gas spending!
     function massUpdatePools () public {
         uint length = poolInfo.length;
@@ -187,9 +187,8 @@ contract EntropySponsorFarm is Ownable {
         if (block.number > pool.lastRewardBlock) {
             uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
             if (sponsorSupply > 0 && totalAllocPoint > 0) {
-                uint blocks = block.number.sub(pool.lastRewardBlock);
                 uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-                uint entropyReward = multiplier.mul(blocks).mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+                uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
                 pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
             }
             pool.lastRewardBlock = block.number;
