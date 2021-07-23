@@ -34,7 +34,7 @@ contract EntropySponsorFarm is Ownable {
     }
 
     /// @notice ENTROPY contract address
-    IERC20 public immutable entropy;
+    IERC20 public immutable ENTROPY;
     // Block number when bonus ENTROPY period ends
     uint public bonusEndBlock;
     // Entropy token created per block
@@ -75,7 +75,7 @@ contract EntropySponsorFarm is Ownable {
         uint _startBlock,
         uint _bonusEndBlock
     ) {
-        entropy = _entropy;
+        ENTROPY = _entropy;
         entropyPerBlock = _entropyPerBlock;
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
@@ -145,8 +145,8 @@ contract EntropySponsorFarm is Ownable {
         uint sponsorSupply = pool.sponsorToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
             uint blocks = block.number.sub(pool.lastRewardBlock);
-            uint entropyReward = blocks.mul(entropyPerBlock).mul(pool.allocPoint) / totalAllocPoint;
-            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION) / sponsorSupply);
+            uint entropyReward = blocks.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
         }
         pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
     }
@@ -218,7 +218,7 @@ contract EntropySponsorFarm is Ownable {
 
         if (user.amount > 0) {
             uint pending = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
-            entropy.transfer(msg.sender, pending);
+            ENTROPY.transfer(msg.sender, pending);
         }
 
         pool.sponsorToken.transferFrom(msg.sender, address(this), _amount);
@@ -287,11 +287,11 @@ contract EntropySponsorFarm is Ownable {
     ///@param _to       recipient
     ///@param _amount   amount of entropy token
     function safeEntropyTransfer(address _to, uint _amount) internal {
-        uint entropyLevel = entropy.balanceOf(address(this));
+        uint entropyLevel = ENTROPY.balanceOf(address(this));
         if (_amount > entropyLevel) {
-            entropy.transfer(_to, entropyLevel);
+            ENTROPY.transfer(_to, entropyLevel);
         } else {
-            entropy.transfer(_to, _amount);
+            ENTROPY.transfer(_to, _amount);
         }
     }
 }
