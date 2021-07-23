@@ -9,8 +9,13 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test ./test/*.test.ts",
+
     "deployToken:kovan": "hardhat run --network kovan ./scripts/deploy_token.ts",
-    "verifyToken:kovan": "hardhat verify --network kovan 0xD7E072160a4b14c12B1A2a4F40242A97679eafD0 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1626393571"
+    "deploySPFarm:kovan": "hardhat run --network kovan ./scripts/deploy_sp_farm.ts",
+
+    "verifyToken:kovan": "hardhat verify --network kovan 0xA10B433A972653A0E79cd5Fb1ce6B9f2622c1d29 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1628393571",
+    "verifySPFarm:kovan": "hardhat verify --network kovan 0x2A9aF7775951931577B517438976c00C5015174B \"0xB65915045554BAf3717088A40c9b9C94181509e9\" 200 12880750 12880850"
+
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",

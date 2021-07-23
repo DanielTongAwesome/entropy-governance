@@ -57,7 +57,7 @@ contract EntropyLiquidityFarm is Ownable {
     ///@notice The block number when Entropy mining starts
     uint public startBlock;
 
-    event Deposit   (address indexed user, uint indexed pid, uint amount, address indexed to);
+    event Deposit   (address indexed user, uint indexed pid, uint amount);
     event Withdraw  (address indexed user, uint indexed pid, uint amount, address indexed to);
     event Harvest   (address indexed user, uint indexed pid, uint entropyAmount, address indexed to);
     event EmergencyWithdraw (address indexed user, uint indexed pid, uint amount, address indexed to);
@@ -201,20 +201,18 @@ contract EntropyLiquidityFarm is Ownable {
     ///@notice Deposit sponsor token to Farm contract for Entropy allocation
     ///@param _pid      The index of the pool
     ///@param _amount   The total amount of lp token
-    ///@param _to       The address if the recipient
-    function deposit (uint _pid, uint _amount, address _to) external {
-        require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
+    function deposit (uint _pid, uint _amount) external {
         PoolInfo memory  pool = updatePool(_pid);
-        UserInfo storage user = userInfo[_pid][_to];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+
+        // Transfer lp token to contract
+        lpToken[_pid].transferFrom(msg.sender, address(this), _amount);
 
         // Update user info
         user.amount = user.amount.add(_amount);
         user.rewardDebt = user.rewardDebt.add(_amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION));
 
-        // Transfer lp token to contract
-        lpToken[_pid].transferFrom(msg.sender, address(this), _amount);
-
-        emit Deposit(msg.sender, _pid, _amount, _to);
+        emit Deposit(msg.sender, _pid, _amount);
     }
 
     ///@notice Withdraw sponsor token from Entropy Farm
