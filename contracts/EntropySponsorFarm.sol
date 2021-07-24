@@ -28,7 +28,7 @@ contract EntropySponsorFarm is Ownable {
     }
     // Info of each pool.
     struct PoolInfo {
-        IERC20 lpToken; // Address of sponsor token contract.
+        IERC20 sponsorToken; // Address of sponsor token contract.
         uint256 allocPoint; // How many allocation points assigned to this pool. ENTROPYs to distribute per block.
         uint256 lastRewardBlock; // Last block number that ENTROPYs distribution occurs.
         uint256 accEntropyPerShare; // Accumulated ENTROPYs per share, times 1e12. See below.
@@ -39,6 +39,8 @@ contract EntropySponsorFarm is Ownable {
     uint256 public sushiPerBlock;
     // Info of each pool.
     PoolInfo[] public poolInfo;
+    // check if the sponsor token already been added or not
+    mapping(address => bool) public isTokenAdded;
     // Info of each user that stakes sponsor tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation poitns. Must be the sum of all allocation points in all pools.
@@ -61,12 +63,13 @@ contract EntropySponsorFarm is Ownable {
     }
 
     // Add a new lp to the pool. Can only be called by the owner.
-    // XXX DO NOT add the same sponsor token more than once. Rewards will be messed up if you do.
     function add(
         uint256 _allocPoint,
-        IERC20 _lpToken,
+        address _sponsorToken,
         bool _withUpdate
     ) public onlyOwner {
+        require(isTokenAdded[_sponsorToken] == false, "SPFARM: SPONSOR TOKEN ALREADY IN POOL");
+        isTokenAdded[_sponsorToken] = true;
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -74,7 +77,7 @@ contract EntropySponsorFarm is Ownable {
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(
             PoolInfo({
-                lpToken: _lpToken,
+                sponsorToken: IERC20(_sponsorToken),
                 allocPoint: _allocPoint,
                 lastRewardBlock: lastRewardBlock,
                 accEntropyPerShare: 0
@@ -106,15 +109,15 @@ contract EntropySponsorFarm is Ownable {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accEntropyPerShare = pool.accEntropyPerShare;
-        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
-        if (block.number > pool.lastRewardBlock && lpSupply != 0) {
+        uint256 sponsorSupply = pool.sponsorToken.balanceOf(address(this));
+        if (block.number > pool.lastRewardBlock && sponsorSupply != 0) {
             uint256 blocks = block.number.sub(pool.lastRewardBlock);
             uint256 sushiReward =
                 blocks.mul(sushiPerBlock).mul(pool.allocPoint).div(
                     totalAllocPoint
                 );
             accEntropyPerShare = accEntropyPerShare.add(
-                sushiReward.mul(1e12).div(lpSupply)
+                sushiReward.mul(1e12).div(sponsorSupply)
             );
         }
         return user.amount.mul(accEntropyPerShare).div(1e12).sub(user.rewardDebt);
@@ -134,8 +137,8 @@ contract EntropySponsorFarm is Ownable {
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
-        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
-        if (lpSupply == 0) {
+        uint256 sponsorSupply = pool.sponsorToken.balanceOf(address(this));
+        if (sponsorSupply == 0) {
             pool.lastRewardBlock = block.number;
             return;
         }
@@ -145,7 +148,7 @@ contract EntropySponsorFarm is Ownable {
                 totalAllocPoint
             );
         pool.accEntropyPerShare = pool.accEntropyPerShare.add(
-            sushiReward.mul(1e12).div(lpSupply)
+            sushiReward.mul(1e12).div(sponsorSupply)
         );
         pool.lastRewardBlock = block.number;
     }
@@ -162,7 +165,7 @@ contract EntropySponsorFarm is Ownable {
                 );
             safeEntropyTransfer(msg.sender, pending);
         }
-        pool.lpToken.safeTransferFrom(
+        pool.sponsorToken.safeTransferFrom(
             address(msg.sender),
             address(this),
             _amount
@@ -185,7 +188,7 @@ contract EntropySponsorFarm is Ownable {
         safeEntropyTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
         user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
-        pool.lpToken.safeTransfer(address(msg.sender), _amount);
+        pool.sponsorToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
@@ -198,7 +201,7 @@ contract EntropySponsorFarm is Ownable {
         user.amount = 0;
         user.rewardDebt = 0;
 
-        pool.lpToken.safeTransfer(address(msg.sender), amount);
+        pool.sponsorToken.safeTransfer(address(msg.sender), amount);
         emit EmergencyWithdraw(msg.sender, _pid, user.amount);
     }
 
