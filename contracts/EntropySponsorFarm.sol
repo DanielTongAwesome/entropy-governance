@@ -1,252 +1,214 @@
 // SPDX-License-Identifier: GPL 3.0
-pragma solidity ^0.8.2;
+pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Entropy.sol";
 
 contract EntropySponsorFarm is Ownable {
-    using SafeMath for uint;
-    
-    ///@notice Info of each user
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
+    // Info of each user.
     struct UserInfo {
-        uint amount;        // Hpw many sponsor token the user has provided
-        uint rewardDebt;    // Reward debt. See explaination below:
+        uint256 amount; // How many sponsor tokens the user has provided.
+        uint256 rewardDebt; // Reward debt. See explanation below.
+        //
+        // We do some fancy math here. Basically, any point in time, the amount of ENTROPYs
+        // entitled to a user but is pending to be distributed is:
+        //
+        //   pending reward = (user.amount * pool.accEntropyPerShare) - user.rewardDebt
+        //
+        // Whenever a user deposits or withdraws sponsor tokens to a pool. Here's what happens:
+        //   1. The pool's `accEntropyPerShare` (and `lastRewardBlock`) gets updated.
+        //   2. User receives the pending reward sent to his/her address.
+        //   3. User's `amount` gets updated.
+        //   4. User's `rewardDebt` gets updated.
     }
-    // How to calculate user pending harvest reward:
-    //
-    //   pending reward = (user.amount * pool.accEntropyPerShare) - user.rewardDebt
-    //
-    // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-    //   1. The pool's `accEntropyPerShare` (and `lastRewardBlock`) gets updated.
-    //   2. User receives the pending reward sent to his/her address.
-    //   3. User's `amount` gets updated.
-    //   4. User's `rewardDebt` gets updated.
-
-    ///@notice Info of each pool
+    // Info of each pool.
     struct PoolInfo {
-        uint accEntropyPerShare;    // Accumulated Entropy per share
-        uint lastRewardBlock;       // Last block number that Entropy distrbution occurs
-        uint allocPoint;            // Entropy token allocation point
+        IERC20 lpToken; // Address of sponsor token contract.
+        uint256 allocPoint; // How many allocation points assigned to this pool. ENTROPYs to distribute per block.
+        uint256 lastRewardBlock; // Last block number that ENTROPYs distribution occurs.
+        uint256 accEntropyPerShare; // Accumulated ENTROPYs per share, times 1e12. See below.
     }
-
-    /// @notice ENTROPY contract address
-    IERC20 public immutable ENTROPY;
-    // Entropy token created per block
-    uint public entropyPerBlock;
-    // Constant for calculation precision
-    uint private constant ACC_ENTROPY_PRECISION = 1e12;
-
-    ///@notice Address of the sponsor token for each sponsor farm pool
-    IERC20[] public sponsorToken;
-    // Info of each pool
+    // The ENTROPY TOKEN!
+    Entropy public sushi;
+    // ENTROPY tokens created per block.
+    uint256 public sushiPerBlock;
+    // Info of each pool.
     PoolInfo[] public poolInfo;
-    // Info of each user that stakes sponsor tokens
-    mapping(uint => mapping(address => UserInfo)) public userInfo;
-    // Info of sponsor token already in pool or not
-    mapping(address => bool) public isTokenInPool;
-    
-    // Total allocation points. must be the sum of all allocation points in all pools
-    uint public totalAllocPoint = 0;
+    // Info of each user that stakes sponsor tokens.
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+    // Total allocation poitns. Must be the sum of all allocation points in all pools.
+    uint256 public totalAllocPoint = 0;
 
-    event Deposit   (address indexed user, uint indexed pid, uint amount);
-    event Withdraw  (address indexed user, uint indexed pid, uint amount, address indexed to);
-    event Harvest   (address indexed user, uint indexed pid, uint entropyAmount, address indexed to);
-    event EmergencyWithdraw (address indexed user, uint indexed pid, uint amount, address indexed to);
-    event LogPoolAddition   (uint indexed pid, uint allocPoint, IERC20 indexed sponsorToken);
-    event LogSetPool        (uint indexed pid, uint allocPoint);
-    event LogUpdatePool     (uint indexed pid, uint lastRewardBlock, uint sponsorSupply, uint accEntropyPerShare);
-    event SetEntropyPerBlock(uint entropyPerBlock);
+    event Deposit           (address indexed user, uint256 indexed pid, uint256 amount);
+    event Withdraw          (address indexed user, uint256 indexed pid, uint256 amount);
+    event EmergencyWithdraw (address indexed user, uint256 indexed pid, uint256 amount);
 
-    ///@param _entropy          Entropy token
-    ///@param _entropyPerBlock  The amount of entropy token per block
-    constructor (
-        IERC20 _entropy,
-        uint _entropyPerBlock
+    constructor(
+        Entropy _sushi,
+        uint256 _sushiPerBlock
     ) {
-        ENTROPY = _entropy;
-        entropyPerBlock = _entropyPerBlock;
-        emit SetEntropyPerBlock(_entropyPerBlock);
+        sushi = _sushi;
+        sushiPerBlock = _sushiPerBlock;
     }
 
-    ///@notice Returns the number of pools
-    function poolLength () external view returns (uint) {
+    function poolLength() external view returns (uint256) {
         return poolInfo.length;
     }
 
-    ///@notice Returns the Entropy value for a specific pool
-    ///@param _pid  The index of the pool
-    function poolEntropyReward (uint _pid) external view returns (uint) {
-        if (totalAllocPoint == 0) {
-            return 0;
+    // Add a new lp to the pool. Can only be called by the owner.
+    // XXX DO NOT add the same sponsor token more than once. Rewards will be messed up if you do.
+    function add(
+        uint256 _allocPoint,
+        IERC20 _lpToken,
+        bool _withUpdate
+    ) public onlyOwner {
+        if (_withUpdate) {
+            massUpdatePools();
         }
-        return entropyPerBlock.mul(poolInfo[_pid].allocPoint).div(totalAllocPoint);
-    }
-
-    ///@notice Returns the total number of LPs staked in the farms.
-    ///@param _pid  The index of the pool
-    function getSponsorSupply (uint _pid) external view returns (uint) {
-        uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
-        return sponsorSupply;
-    }
-
-    ///@notice Add a new sponsor token to the pool. Can only be called by owner.
-    ///@param _allocPoint   AP of the new pool
-    ///@param _sponsorToken Address of sponsor ERC-20 token
-    function add (uint _allocPoint, IERC20 _sponsorToken) public onlyOwner {
-        require(address(_sponsorToken) != address(0),           "SPFARM: INPUT ZERO TOKEN ADDRESS");
-        require(isTokenInPool[address(_sponsorToken)] == false, "SPFARM: TOKEN ALREADY IN POOL");
+        uint256 lastRewardBlock = block.number;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
-        sponsorToken.push(_sponsorToken);
-        isTokenInPool[address(_sponsorToken)] = true;
-
-        poolInfo.push(PoolInfo({
-            allocPoint:         _allocPoint,
-            lastRewardBlock:    block.number,
-            accEntropyPerShare: 0
-        }));
-
-        emit LogPoolAddition(sponsorToken.length.sub(1), _allocPoint, _sponsorToken);
+        poolInfo.push(
+            PoolInfo({
+                lpToken: _lpToken,
+                allocPoint: _allocPoint,
+                lastRewardBlock: lastRewardBlock,
+                accEntropyPerShare: 0
+            })
+        );
     }
 
-    ///@notice  Update the given pool's ENTROPY allocation point. Can only be called by the owner
-    ///@param _pid          The index of the pool. See 'poolInfo'
-    ///@param _allocPoint   New AP of the pool
-    function set (uint _pid, uint _allocPoint) public onlyOwner {
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
-        poolInfo[_pid].allocPoint = _allocPoint;
-        emit LogSetPool(_pid, _allocPoint);
-    }
-    
-    /// @notice View function to see pending ENTROPY on frontend.
-    /// @param _pid     The index of the pool. See `poolInfo`.
-    /// @param _user    Address of user.
-    /// @return pending SUSHI reward for a given user.
-    function pendingEntropy (uint _pid, address _user) external view returns (uint pending) {
-        PoolInfo memory pool = poolInfo[_pid];
-        UserInfo memory user = userInfo[_pid][_user];
-
-        uint accEntropyPerShare = pool.accEntropyPerShare;
-        uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
-        if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
-            uint blocks = block.number.sub(pool.lastRewardBlock);
-            accEntropyPerShare = accEntropyPerShare.add(
-                (blocks.mul(entropyPerBlock).mul(pool.allocPoint).mul(ACC_ENTROPY_PRECISION).div(totalAllocPoint)).div(sponsorSupply));
+    // Update the given pool's ENTROPY allocation point. Can only be called by the owner.
+    function set(
+        uint256 _pid,
+        uint256 _allocPoint,
+        bool _withUpdate
+    ) public onlyOwner {
+        if (_withUpdate) {
+            massUpdatePools();
         }
-        pending = (user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION)).sub(user.rewardDebt);
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(
+            _allocPoint
+        );
+        poolInfo[_pid].allocPoint = _allocPoint;
     }
 
-     ///@notice Update reward vairables for all pools. Be careful of gas spending!
-    function massUpdatePools () public {
-        uint length = poolInfo.length;
-        for (uint pid = 0; pid < length; ++pid) {
+    // View function to see pending ENTROPYs on frontend.
+    function pendingEntropy(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256)
+    {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
+        uint256 accEntropyPerShare = pool.accEntropyPerShare;
+        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
+        if (block.number > pool.lastRewardBlock && lpSupply != 0) {
+            uint256 blocks = block.number.sub(pool.lastRewardBlock);
+            uint256 sushiReward =
+                blocks.mul(sushiPerBlock).mul(pool.allocPoint).div(
+                    totalAllocPoint
+                );
+            accEntropyPerShare = accEntropyPerShare.add(
+                sushiReward.mul(1e12).div(lpSupply)
+            );
+        }
+        return user.amount.mul(accEntropyPerShare).div(1e12).sub(user.rewardDebt);
+    }
+
+    // Update reward vairables for all pools. Be careful of gas spending!
+    function massUpdatePools() public {
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
             updatePool(pid);
         }
     }
 
-    ///@notice Update reward variables of the given pool to be up-to-date.
-    ///@param _pid  The index of the pool
-    function updatePool (uint _pid) public returns (PoolInfo memory pool) {
-        pool = poolInfo[_pid];
-        if (block.number > pool.lastRewardBlock) {
-            uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
-            if (sponsorSupply > 0 && totalAllocPoint > 0) {
-                uint blocks = block.number.sub(pool.lastRewardBlock);
-                pool.accEntropyPerShare = pool.accEntropyPerShare.add(
-                    (blocks.mul(entropyPerBlock).mul(pool.allocPoint).mul(ACC_ENTROPY_PRECISION).div(totalAllocPoint)).div(sponsorSupply));
-            }
-            pool.lastRewardBlock = block.number;
-            poolInfo[_pid] = pool;
-
-            emit LogUpdatePool(_pid, pool.lastRewardBlock, sponsorSupply, pool.accEntropyPerShare);
+    // Update reward variables of the given pool to be up-to-date.
+    function updatePool(uint256 _pid) public {
+        PoolInfo storage pool = poolInfo[_pid];
+        if (block.number <= pool.lastRewardBlock) {
+            return;
         }
+        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
+        if (lpSupply == 0) {
+            pool.lastRewardBlock = block.number;
+            return;
+        }
+        uint256 blocks = block.number.sub(pool.lastRewardBlock);
+        uint256 sushiReward =
+            blocks.mul(sushiPerBlock).mul(pool.allocPoint).div(
+                totalAllocPoint
+            );
+        pool.accEntropyPerShare = pool.accEntropyPerShare.add(
+            sushiReward.mul(1e12).div(lpSupply)
+        );
+        pool.lastRewardBlock = block.number;
     }
 
-    ///@notice Deposit sponsor token to Farm contract for Entropy allocation
-    ///@param _pid      The index of the pool
-    ///@param _amount   The total amount of sponsor token
-    function deposit (uint _pid, uint _amount) external {
-        PoolInfo memory  pool = updatePool(_pid);
+    // Deposit sponsor tokens to MasterChef for ENTROPY allocation.
+    function deposit(uint256 _pid, uint256 _amount) public {
+        PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-
-        // transfer sponsor token to contract
-        sponsorToken[_pid].transferFrom(msg.sender, address(this), _amount);
-
-        // Update user info
+        updatePool(_pid);
+        if (user.amount > 0) {
+            uint256 pending =
+                user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(
+                    user.rewardDebt
+                );
+            safeEntropyTransfer(msg.sender, pending);
+        }
+        pool.lpToken.safeTransferFrom(
+            address(msg.sender),
+            address(this),
+            _amount
+        );
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.rewardDebt.add(_amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION));
-
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
-    
-    ///@notice Withdraw sponsor token from Entropy Farm
-    ///@param _pid      The index of the pool
-    ///@param _amount   The amount of sponsor token
-    ///@param _to       The address of recipient
-    function withdraw (uint _pid, uint _amount, address _to) external {
-        require(_to != address(0),      "SPFARM: INPUT ZERO TOKEN ADDRESS");
-        PoolInfo memory  pool = updatePool(_pid);
+
+    // Withdraw sponsor tokens from MasterChef.
+    function withdraw(uint256 _pid, uint256 _amount) public {
+        PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        require(_amount <= user.amount, "SPFARM: NOT ENOUGH BALANCE");
-
-        // Update user info
-        user.rewardDebt = user.rewardDebt.sub(_amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION));
+        require(user.amount >= _amount, "withdraw: not good");
+        updatePool(_pid);
+        uint256 pending =
+            user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(
+                user.rewardDebt
+            );
+        safeEntropyTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
-
-        // Transfer sponsor token to address _to
-        sponsorToken[_pid].transfer(_to, _amount);
-
-        emit Withdraw(msg.sender, _pid, _amount, _to);
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+        pool.lpToken.safeTransfer(address(msg.sender), _amount);
+        emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    ///@notice Harvest the reward entropy token
-    ///@param _pid  The index of the pool
-    ///@param _to   The address of the recipient
-    function harvest (uint _pid, address _to) external {
-        require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
-        PoolInfo memory  pool = updatePool(_pid);
+    // Withdraw without caring about rewards. EMERGENCY ONLY.
+    function emergencyWithdraw(uint256 _pid) public {
+        PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
-        uint accumulatedEntropy = user.amount.mul(pool.accEntropyPerShare).div(ACC_ENTROPY_PRECISION);
-        uint _pendingEntropy = accumulatedEntropy.sub(user.rewardDebt);
-        
-        // Update user reward debt
-        user.rewardDebt = accumulatedEntropy;
-
-        // Send reward back to user
-        if (_pendingEntropy > 0) {
-            safeEntropyTransfer(_to, _pendingEntropy);
-        }
-
-        emit Harvest(msg.sender, _pid, _pendingEntropy, _to);
-    } 
-
-    ///@notice Withdraw without caring about rewards. EMERGENCY ONLY.
-    ///@param _pid  The index of the pool
-    ///@param _to   The address of the recipient
-    function emergencyWithdraw (uint _pid, address _to) external {
-        require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
-        UserInfo storage user = userInfo[_pid][msg.sender];
         uint amount = user.amount;
-        
         user.amount = 0;
         user.rewardDebt = 0;
-        
-        sponsorToken[_pid].transfer(_to, amount);
-        emit EmergencyWithdraw(msg.sender, _pid, amount, _to);
+
+        pool.lpToken.safeTransfer(address(msg.sender), amount);
+        emit EmergencyWithdraw(msg.sender, _pid, user.amount);
     }
 
-    ///@notice Safe entropy token transfer function, just in case if rounding error causes pool to not have enough entropy tokens
-    ///@param _to       recipient
-    ///@param _amount   amount of entropy token
-    function safeEntropyTransfer(address _to, uint _amount) private {
-        uint entropyLevel = ENTROPY.balanceOf(address(this));
-        if (_amount > entropyLevel) {
-            ENTROPY.transfer(_to, entropyLevel);
+    // Safe sushi transfer function, just in case if rounding error causes pool to not have enough ENTROPYs.
+    function safeEntropyTransfer(address _to, uint256 _amount) internal {
+        uint256 sushiBal = sushi.balanceOf(address(this));
+        if (_amount > sushiBal) {
+            sushi.transfer(_to, sushiBal);
         } else {
-            ENTROPY.transfer(_to, _amount);
+            sushi.transfer(_to, _amount);
         }
     }
 }

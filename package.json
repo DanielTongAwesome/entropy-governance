@@ -13,8 +13,8 @@
     "deployToken:kovan": "hardhat run --network kovan ./scripts/deploy_token.ts",
     "deploySPFarm:kovan": "hardhat run --network kovan ./scripts/deploy_sp_farm.ts",
 
-    "verifyToken:kovan": "hardhat verify --network kovan 0xA10B433A972653A0E79cd5Fb1ce6B9f2622c1d29 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1628393571",
-    "verifySPFarm:kovan": "hardhat verify --network kovan 0x9Ec047f1493117754C16C9AD327C7A72787f0E5e \"0xB65915045554BAf3717088A40c9b9C94181509e9\" 500000000 12881000 12881100"
+    "verifyToken:kovan": "hardhat verify --network kovan 0xEb1F663802041b783C1Ce10A01FBB932f2187f28 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1628393571",
+    "verifySPFarm:kovan": "hardhat verify --network kovan 0x72eBC5cc7e5B0c1ed809dA52EceD8438Fe90Af30 \"0xEb1F663802041b783C1Ce10A01FBB932f2187f28\" 20000000000000000000"
 
   },
   "devDependencies": {

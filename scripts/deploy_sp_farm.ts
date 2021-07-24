@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-07-23 02:27:23
+ * @LastEditTime: 2021-07-24 03:17:05
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
  * @FilePath: /entropy-governance/scripts/deploy_sp_farm.ts
@@ -19,10 +19,7 @@ async function main() {
 
     const ENTROPY_ADDRESS = process.env.ENTROPY_ADDRESS || "";
     const ENTROPY_PER_BLOCK = process.env.ENTROPY_PER_BLOCK;
-    const START_BLOCK = process.env.START_BLOCK;
-    const BONUS_END_BLOCK = process.env.BONUS_END_BLOCK;
-
-
+    
     const chainId = parseInt(await getChainId(), 10);
     const {rep, recipient} = await getNamedAccounts();
 
@@ -36,7 +33,7 @@ async function main() {
     console.log("==========================================================================================\n");
 
     const spFarm = await getContractFactory('EntropySponsorFarm');
-    const sponsorFarm = await spFarm.deploy(ENTROPY_ADDRESS, BigNumber.from(ENTROPY_PER_BLOCK), BigNumber.from(START_BLOCK), BigNumber.from(BONUS_END_BLOCK));
+    const sponsorFarm = await spFarm.deploy(ENTROPY_ADDRESS, BigNumber.from(ENTROPY_PER_BLOCK));
 
     console.log("\n==========================================================================================");
     console.log(`deployed Sponsor Farming Contract at ${sponsorFarm.address}`);
