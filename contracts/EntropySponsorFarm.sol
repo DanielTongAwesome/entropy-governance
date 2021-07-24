@@ -34,14 +34,10 @@ contract EntropySponsorFarm is Ownable {
 
     /// @notice ENTROPY contract address
     IERC20 public immutable ENTROPY;
-    // Block number when bonus ENTROPY period ends
-    uint public bonusEndBlock;
     // Entropy token created per block
     uint public entropyPerBlock;
-    // Bonus multiplier for early Entropy makers
-    uint public constant BONUS_MULTIPLIER = 10;
     // Constant for calculation precision
-    uint private constant ACC_ENTROPY_PRECISION = 1e18;
+    uint private constant ACC_ENTROPY_PRECISION = 1e12;
 
     ///@notice Address of the sponsor token for each sponsor farm pool
     IERC20[] public sponsorToken;
@@ -54,8 +50,6 @@ contract EntropySponsorFarm is Ownable {
     
     // Total allocation points. must be the sum of all allocation points in all pools
     uint public totalAllocPoint = 0;
-    // The block number when Entropy mining starts
-    uint public startBlock;
 
     event Deposit   (address indexed user, uint indexed pid, uint amount);
     event Withdraw  (address indexed user, uint indexed pid, uint amount, address indexed to);
@@ -68,18 +62,12 @@ contract EntropySponsorFarm is Ownable {
 
     ///@param _entropy          Entropy token
     ///@param _entropyPerBlock  The amount of entropy token per block
-    ///@param _startBlock       Starting block of farming
-    ///@param _bonusEndBlock    Ending block of farming
     constructor (
         IERC20 _entropy,
-        uint _entropyPerBlock,
-        uint _startBlock,
-        uint _bonusEndBlock
+        uint _entropyPerBlock
     ) {
         ENTROPY = _entropy;
         entropyPerBlock = _entropyPerBlock;
-        startBlock = _startBlock;
-        bonusEndBlock = _bonusEndBlock;
         emit SetEntropyPerBlock(_entropyPerBlock);
     }
 
@@ -132,29 +120,7 @@ contract EntropySponsorFarm is Ownable {
         emit LogSetPool(_pid, _allocPoint);
     }
     
-    ///@notice Return reward multiplier over the given _from to _to block.
-    ///@param _from The starting block number
-    ///@param _to   The ending block number
-    function getMultiplier (
-        uint _from, 
-        uint _to
-    ) public view returns (uint) {
-        if (_to <= bonusEndBlock) {
-            // range in bonus period
-            return _to.sub(_from).mul(BONUS_MULTIPLIER);
-        } else if (_from >= bonusEndBlock) {
-            // range not in bonus period
-            return _to.sub(_from);
-        } else {
-            // range partially in bonus period
-            return
-                bonusEndBlock.sub(_from).mul(BONUS_MULTIPLIER).add(
-                    _to.sub(bonusEndBlock)
-                );
-        }
-    }
-
-     /// @notice View function to see pending ENTROPY on frontend.
+    /// @notice View function to see pending ENTROPY on frontend.
     /// @param _pid     The index of the pool. See `poolInfo`.
     /// @param _user    Address of user.
     /// @return pending SUSHI reward for a given user.
@@ -165,11 +131,11 @@ contract EntropySponsorFarm is Ownable {
         uint accEntropyPerShare = pool.accEntropyPerShare;
         uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && sponsorSupply > 0 && totalAllocPoint > 0) {
-            uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
+            uint blocks = block.number.sub(pool.lastRewardBlock);
+            accEntropyPerShare = accEntropyPerShare.add(
+                (blocks.mul(entropyPerBlock).mul(pool.allocPoint).mul(ACC_ENTROPY_PRECISION).div(totalAllocPoint)).div(sponsorSupply));
         }
-        pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
+        pending = (user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION)).sub(user.rewardDebt);
     }
 
      ///@notice Update reward vairables for all pools. Be careful of gas spending!
@@ -187,9 +153,9 @@ contract EntropySponsorFarm is Ownable {
         if (block.number > pool.lastRewardBlock) {
             uint sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
             if (sponsorSupply > 0 && totalAllocPoint > 0) {
-                uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-                uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-                pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(sponsorSupply));
+                uint blocks = block.number.sub(pool.lastRewardBlock);
+                pool.accEntropyPerShare = pool.accEntropyPerShare.add(
+                    (blocks.mul(entropyPerBlock).mul(pool.allocPoint).mul(ACC_ENTROPY_PRECISION).div(totalAllocPoint)).div(sponsorSupply));
             }
             pool.lastRewardBlock = block.number;
             poolInfo[_pid] = pool;
@@ -201,7 +167,7 @@ contract EntropySponsorFarm is Ownable {
     ///@notice Deposit sponsor token to Farm contract for Entropy allocation
     ///@param _pid      The index of the pool
     ///@param _amount   The total amount of sponsor token
-    function deposit (uint _pid, uint _amount) public {
+    function deposit (uint _pid, uint _amount) external {
         PoolInfo memory  pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][msg.sender];
 
@@ -219,7 +185,7 @@ contract EntropySponsorFarm is Ownable {
     ///@param _pid      The index of the pool
     ///@param _amount   The amount of sponsor token
     ///@param _to       The address of recipient
-    function withdraw (uint _pid, uint _amount, address _to) public {
+    function withdraw (uint _pid, uint _amount, address _to) external {
         require(_to != address(0),      "SPFARM: INPUT ZERO TOKEN ADDRESS");
         PoolInfo memory  pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -238,7 +204,7 @@ contract EntropySponsorFarm is Ownable {
     ///@notice Harvest the reward entropy token
     ///@param _pid  The index of the pool
     ///@param _to   The address of the recipient
-    function harvest (uint _pid, address _to) public {
+    function harvest (uint _pid, address _to) external {
         require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
         PoolInfo memory  pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -260,7 +226,7 @@ contract EntropySponsorFarm is Ownable {
     ///@notice Withdraw without caring about rewards. EMERGENCY ONLY.
     ///@param _pid  The index of the pool
     ///@param _to   The address of the recipient
-    function emergencyWithdraw (uint _pid, address _to) public {
+    function emergencyWithdraw (uint _pid, address _to) external {
         require(_to != address(0), "SPFARM: INPUT ZERO TOKEN ADDRESS");
         UserInfo storage user = userInfo[_pid][msg.sender];
         uint amount = user.amount;
@@ -275,7 +241,7 @@ contract EntropySponsorFarm is Ownable {
     ///@notice Safe entropy token transfer function, just in case if rounding error causes pool to not have enough entropy tokens
     ///@param _to       recipient
     ///@param _amount   amount of entropy token
-    function safeEntropyTransfer(address _to, uint _amount) internal {
+    function safeEntropyTransfer(address _to, uint _amount) private {
         uint entropyLevel = ENTROPY.balanceOf(address(this));
         if (_amount > entropyLevel) {
             ENTROPY.transfer(_to, entropyLevel);

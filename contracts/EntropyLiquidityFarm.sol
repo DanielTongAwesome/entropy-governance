@@ -34,14 +34,10 @@ contract EntropyLiquidityFarm is Ownable {
 
     ///@dev Address of Entropy Token
     IERC20 public immutable ENTROPY;
-    // Block number when bonus ENTROPY period ends
-    uint public bonusEndBlock;
     // Entropy token created per block
     uint public entropyPerBlock;
-    // Bonus multiplier for early Entropy makers
-    uint public constant BONUS_MULTIPLIER = 10;
     ///@dev Extra decimals for pool's accEntropyPerShare attribute. Needed in order to accomodate different types of LPs.
-    uint private constant ACC_ENTROPY_PRECISION = 1e18;
+    uint private constant ACC_ENTROPY_PRECISION = 1e12;
     
     ///@notice Address of the LP token for each liquidity farm pool
     IERC20[] public lpToken;
@@ -54,8 +50,6 @@ contract EntropyLiquidityFarm is Ownable {
 
     ///@notice Total allocation points. Must be the sum of all allocation points in all pools
     uint public totalAllocPoint = 0;
-    ///@notice The block number when Entropy mining starts
-    uint public startBlock;
 
     event Deposit   (address indexed user, uint indexed pid, uint amount);
     event Withdraw  (address indexed user, uint indexed pid, uint amount, address indexed to);
@@ -68,18 +62,12 @@ contract EntropyLiquidityFarm is Ownable {
 
     ///@param _entropy          The Entropy token contract address
     ///@param _entropyPerBlock  Entropy token assigned to transfer per block
-    ///@param _startBlock       Starting block of farming
-    ///@param _bonusEndBlock    Ending block of farming
     constructor (
         IERC20 _entropy, 
-        uint _entropyPerBlock,
-        uint _startBlock,
-        uint _bonusEndBlock
+        uint _entropyPerBlock
     ) {
         ENTROPY = _entropy;
         entropyPerBlock = _entropyPerBlock;
-        startBlock = _startBlock;
-        bonusEndBlock = _bonusEndBlock;
         emit SetEntropyPerBlock(_entropyPerBlock);
     }
 
@@ -132,28 +120,6 @@ contract EntropyLiquidityFarm is Ownable {
         emit LogSetPool(_pid, _allocPoint);
     }
 
-    ///@notice Return reward multiplier over the given _from to _to block.
-    ///@param _from The starting block number
-    ///@param _to   The ending block number
-    function getMultiplier (
-        uint _from, 
-        uint _to
-    ) public view returns (uint) {
-        if (_to <= bonusEndBlock) {
-            // range in bonus period
-            return _to.sub(_from).mul(BONUS_MULTIPLIER);
-        } else if (_from >= bonusEndBlock) {
-            // range not in bonus period
-            return _to.sub(_from);
-        } else {
-            // range partially in bonus period
-            return
-                bonusEndBlock.sub(_from).mul(BONUS_MULTIPLIER).add(
-                    _to.sub(bonusEndBlock)
-                );
-        }
-    }
-
     /// @notice View function to see pending ENTROPY on frontend.
     /// @param _pid     The index of the pool. See `poolInfo`.
     /// @param _user    Address of user.
@@ -165,9 +131,9 @@ contract EntropyLiquidityFarm is Ownable {
         uint accEntropyPerShare = pool.accEntropyPerShare;
         uint lpSupply = lpToken[_pid].balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply > 0 && totalAllocPoint > 0) {
-            uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            accEntropyPerShare = accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(lpSupply));
+            uint blocks = block.number.sub(pool.lastRewardBlock);
+            accEntropyPerShare = accEntropyPerShare.add(
+                (blocks.mul(entropyPerBlock).mul(pool.allocPoint).mul(ACC_ENTROPY_PRECISION).div(totalAllocPoint)).div(lpSupply));
         }
         pending = user.amount.mul(accEntropyPerShare).div(ACC_ENTROPY_PRECISION).sub(user.rewardDebt);
     }
@@ -187,9 +153,9 @@ contract EntropyLiquidityFarm is Ownable {
         if (block.number > pool.lastRewardBlock) {
             uint lpSupply = lpToken[_pid].balanceOf(address(this));
             if (lpSupply > 0 && totalAllocPoint > 0) {
-                uint multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-                uint entropyReward = multiplier.mul(entropyPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-                pool.accEntropyPerShare = pool.accEntropyPerShare.add(entropyReward.mul(ACC_ENTROPY_PRECISION).div(lpSupply));
+                uint blocks = block.number.sub(pool.lastRewardBlock);
+                pool.accEntropyPerShare = pool.accEntropyPerShare.add(
+                    (blocks.mul(entropyPerBlock).mul(pool.allocPoint).mul(ACC_ENTROPY_PRECISION).div(totalAllocPoint)).div(lpSupply));
             }
             pool.lastRewardBlock = block.number;
             poolInfo[_pid] = pool;
@@ -260,7 +226,7 @@ contract EntropyLiquidityFarm is Ownable {
     ///@notice Withdraw without caring about rewards. EMERGENCY ONLY.
     ///@param _pid  The index of the pool
     ///@param _to   The address of the recipient
-    function emergencyWithdraw (uint _pid, address _to) public {
+    function emergencyWithdraw (uint _pid, address _to) external {
         require(_to != address(0), "LPFARM: INPUT ZERO TOKEN ADDRESS");
         UserInfo storage user = userInfo[_pid][msg.sender];
         uint amount = user.amount;
@@ -275,7 +241,7 @@ contract EntropyLiquidityFarm is Ownable {
     ///@notice Safe entropy token transfer function, just in case if rounding error causes pool to not have enough entropy tokens
     ///@param _to       recipient
     ///@param _amount   amount of entropy token
-    function safeEntropyTransfer(address _to, uint _amount) internal {
+    function safeEntropyTransfer(address _to, uint _amount) private {
         uint entropyLevel = ENTROPY.balanceOf(address(this));
         if (_amount > entropyLevel) {
             ENTROPY.transfer(_to, entropyLevel);
