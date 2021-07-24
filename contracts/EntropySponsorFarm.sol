@@ -67,7 +67,7 @@ contract EntropySponsorFarm is Ownable {
         return poolInfo.length;
     }
 
-    // Add a new lp to the pool. Can only be called by the owner.
+    // Add a new sponsor token to the pool. Can only be called by the owner.
     function add(
         uint256 _allocPoint,
         address _sponsorToken,
