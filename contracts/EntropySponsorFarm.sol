@@ -28,15 +28,15 @@ contract EntropySponsorFarm is Ownable {
     }
     // Info of each pool.
     struct PoolInfo {
-        IERC20 sponsorToken; // Address of sponsor token contract.
-        uint256 allocPoint; // How many allocation points assigned to this pool. ENTROPYs to distribute per block.
-        uint256 lastRewardBlock; // Last block number that ENTROPYs distribution occurs.
+        IERC20 sponsorToken;    // Address of sponsor token contract.
+        uint256 allocPoint;     // How many allocation points assigned to this pool. ENTROPYs to distribute per block.
+        uint256 lastRewardBlock;    // Last block number that ENTROPYs distribution occurs.
         uint256 accEntropyPerShare; // Accumulated ENTROPYs per share, times 1e12. See below.
     }
     // The ENTROPY TOKEN!
-    Entropy public sushi;
+    Entropy public entropy;
     // ENTROPY tokens created per block.
-    uint256 public sushiPerBlock;
+    uint256 public entropyPerBlock;
     // Info of each pool.
     PoolInfo[] public poolInfo;
     // check if the sponsor token already been added or not
@@ -46,16 +46,21 @@ contract EntropySponsorFarm is Ownable {
     // Total allocation poitns. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
 
+    // user actions event
     event Deposit           (address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw          (address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw (address indexed user, uint256 indexed pid, uint256 amount);
+    // admin actions event
+    event LogPoolAddition   (uint256 indexed pid, uint256 allocPoint, IERC20 indexed sponsorToken, bool withUpdate);
+    event LogSetPool        (uint256 indexed pid, uint256 allocPoint, IERC20 indexed sponsorToken, bool withUpdate);
+    event LogUpdatePool     (uint256 indexed pid, uint256 lastRewardBlock, IERC20 indexed sponsorToken, uint256 accEntropyPerShare);
 
     constructor(
-        Entropy _sushi,
-        uint256 _sushiPerBlock
+        Entropy _entropy,
+        uint256 _entropyPerBlock
     ) {
-        sushi = _sushi;
-        sushiPerBlock = _sushiPerBlock;
+        entropy = _entropy;
+        entropyPerBlock = _entropyPerBlock;
     }
 
     function poolLength() external view returns (uint256) {
@@ -83,6 +88,7 @@ contract EntropySponsorFarm is Ownable {
                 accEntropyPerShare: 0
             })
         );
+        emit LogPoolAddition(poolInfo.length.sub(1), _allocPoint, IERC20(_sponsorToken), _withUpdate);
     }
 
     // Update the given pool's ENTROPY allocation point. Can only be called by the owner.
@@ -98,6 +104,7 @@ contract EntropySponsorFarm is Ownable {
             _allocPoint
         );
         poolInfo[_pid].allocPoint = _allocPoint;
+        emit LogSetPool(_pid, _allocPoint, poolInfo[_pid].sponsorToken, _withUpdate);
     }
 
     // View function to see pending ENTROPYs on frontend.
@@ -112,12 +119,12 @@ contract EntropySponsorFarm is Ownable {
         uint256 sponsorSupply = pool.sponsorToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && sponsorSupply != 0) {
             uint256 blocks = block.number.sub(pool.lastRewardBlock);
-            uint256 sushiReward =
-                blocks.mul(sushiPerBlock).mul(pool.allocPoint).div(
+            uint256 entropyReward =
+                blocks.mul(entropyPerBlock).mul(pool.allocPoint).div(
                     totalAllocPoint
                 );
             accEntropyPerShare = accEntropyPerShare.add(
-                sushiReward.mul(1e12).div(sponsorSupply)
+                entropyReward.mul(1e12).div(sponsorSupply)
             );
         }
         return user.amount.mul(accEntropyPerShare).div(1e12).sub(user.rewardDebt);
@@ -143,14 +150,15 @@ contract EntropySponsorFarm is Ownable {
             return;
         }
         uint256 blocks = block.number.sub(pool.lastRewardBlock);
-        uint256 sushiReward =
-            blocks.mul(sushiPerBlock).mul(pool.allocPoint).div(
+        uint256 entropyReward =
+            blocks.mul(entropyPerBlock).mul(pool.allocPoint).div(
                 totalAllocPoint
             );
         pool.accEntropyPerShare = pool.accEntropyPerShare.add(
-            sushiReward.mul(1e12).div(sponsorSupply)
+            entropyReward.mul(1e12).div(sponsorSupply)
         );
         pool.lastRewardBlock = block.number;
+        emit LogUpdatePool(_pid, pool.lastRewardBlock, pool.sponsorToken, pool.accEntropyPerShare);
     }
 
     // Deposit sponsor tokens to MasterChef for ENTROPY allocation.
@@ -205,13 +213,13 @@ contract EntropySponsorFarm is Ownable {
         emit EmergencyWithdraw(msg.sender, _pid, user.amount);
     }
 
-    // Safe sushi transfer function, just in case if rounding error causes pool to not have enough ENTROPYs.
+    // Safe entropy transfer function, just in case if rounding error causes pool to not have enough ENTROPYs.
     function safeEntropyTransfer(address _to, uint256 _amount) internal {
-        uint256 sushiBal = sushi.balanceOf(address(this));
-        if (_amount > sushiBal) {
-            sushi.transfer(_to, sushiBal);
+        uint256 entropyBal = entropy.balanceOf(address(this));
+        if (_amount > entropyBal) {
+            entropy.transfer(_to, entropyBal);
         } else {
-            sushi.transfer(_to, _amount);
+            entropy.transfer(_to, _amount);
         }
     }
 }
