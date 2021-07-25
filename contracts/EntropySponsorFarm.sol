@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL 3.0
-pragma solidity 0.8.2;
+pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,7 +28,6 @@ contract EntropySponsorFarm is Ownable {
     }
     // Info of each pool.
     struct PoolInfo {
-        IERC20 sponsorToken;    // Address of sponsor token contract.
         uint256 allocPoint;     // How many allocation points assigned to this pool. ENTROPYs to distribute per block.
         uint256 lastRewardBlock;    // Last block number that ENTROPYs distribution occurs.
         uint256 accEntropyPerShare; // Accumulated ENTROPYs per share, times 1e12. See below.
@@ -39,6 +38,8 @@ contract EntropySponsorFarm is Ownable {
     uint256 public entropyPerBlock;
     // Info of each pool.
     PoolInfo[] public poolInfo;
+    // Info of sponsor token.
+    IERC20[] public sponsorToken;
     // check if the sponsor token already been added or not
     mapping(address => bool) public isTokenAdded;
     // Info of each user that stakes sponsor tokens.
@@ -49,11 +50,12 @@ contract EntropySponsorFarm is Ownable {
     // user actions event
     event Deposit           (address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw          (address indexed user, uint256 indexed pid, uint256 amount);
+    event Claim             (address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw (address indexed user, uint256 indexed pid, uint256 amount);
     // admin actions event
-    event LogPoolAddition   (uint256 indexed pid, uint256 allocPoint, IERC20 indexed sponsorToken, bool withUpdate);
-    event LogSetPool        (uint256 indexed pid, uint256 allocPoint, IERC20 indexed sponsorToken, bool withUpdate);
-    event LogUpdatePool     (uint256 indexed pid, uint256 lastRewardBlock, IERC20 indexed sponsorToken, uint256 accEntropyPerShare);
+    event LogPoolAddition   (uint256 indexed pid, uint256 allocPoint,       IERC20 indexed sponsorToken, bool withUpdate);
+    event LogSetPool        (uint256 indexed pid, uint256 allocPoint,       IERC20 indexed sponsorToken, bool withUpdate);
+    event LogUpdatePool     (uint256 indexed pid, uint256 lastRewardBlock,  IERC20 indexed sponsorToken, uint256 accEntropyPerShare);
 
     constructor(
         Entropy _entropy,
@@ -80,9 +82,9 @@ contract EntropySponsorFarm is Ownable {
         }
         uint256 lastRewardBlock = block.number;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
+        sponsorToken.push(IERC20(_sponsorToken));
         poolInfo.push(
             PoolInfo({
-                sponsorToken: IERC20(_sponsorToken),
                 allocPoint: _allocPoint,
                 lastRewardBlock: lastRewardBlock,
                 accEntropyPerShare: 0
@@ -104,7 +106,7 @@ contract EntropySponsorFarm is Ownable {
             _allocPoint
         );
         poolInfo[_pid].allocPoint = _allocPoint;
-        emit LogSetPool(_pid, _allocPoint, poolInfo[_pid].sponsorToken, _withUpdate);
+        emit LogSetPool(_pid, _allocPoint, sponsorToken[_pid], _withUpdate);
     }
 
     // View function to see pending ENTROPYs on frontend.
@@ -116,7 +118,7 @@ contract EntropySponsorFarm is Ownable {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accEntropyPerShare = pool.accEntropyPerShare;
-        uint256 sponsorSupply = pool.sponsorToken.balanceOf(address(this));
+        uint256 sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && sponsorSupply != 0) {
             uint256 blocks = block.number.sub(pool.lastRewardBlock);
             uint256 entropyReward =
@@ -144,7 +146,7 @@ contract EntropySponsorFarm is Ownable {
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
-        uint256 sponsorSupply = pool.sponsorToken.balanceOf(address(this));
+        uint256 sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
         if (sponsorSupply == 0) {
             pool.lastRewardBlock = block.number;
             return;
@@ -158,7 +160,7 @@ contract EntropySponsorFarm is Ownable {
             entropyReward.mul(1e12).div(sponsorSupply)
         );
         pool.lastRewardBlock = block.number;
-        emit LogUpdatePool(_pid, pool.lastRewardBlock, pool.sponsorToken, pool.accEntropyPerShare);
+        emit LogUpdatePool(_pid, pool.lastRewardBlock, sponsorToken[_pid], pool.accEntropyPerShare);
     }
 
     // Deposit sponsor tokens to MasterChef for ENTROPY allocation.
@@ -173,7 +175,7 @@ contract EntropySponsorFarm is Ownable {
                 );
             safeEntropyTransfer(msg.sender, pending);
         }
-        pool.sponsorToken.safeTransferFrom(
+        sponsorToken[_pid].safeTransferFrom(
             address(msg.sender),
             address(this),
             _amount
@@ -187,29 +189,44 @@ contract EntropySponsorFarm is Ownable {
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        require(user.amount >= _amount, "withdraw: not good");
+        require(user.amount >= _amount, "SPFARM: INSUFFICIENT BALANCE");
+        updatePool(_pid);
+
+        uint256 pending =
+            user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(
+                user.rewardDebt
+            );
+        safeEntropyTransfer(msg.sender, pending);
+        emit Claim(msg.sender, _pid, pending);
+
+        user.amount = user.amount.sub(_amount);
+        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+        sponsorToken[_pid].safeTransfer(address(msg.sender), _amount);
+        emit Withdraw(msg.sender, _pid, _amount);
+    }
+
+    // Claim mint entropy tokens
+    function claim(uint256 _pid) public {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
         uint256 pending =
             user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(
                 user.rewardDebt
             );
         safeEntropyTransfer(msg.sender, pending);
-        user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accEntropyPerShare).div(1e12);
-        pool.sponsorToken.safeTransfer(address(msg.sender), _amount);
-        emit Withdraw(msg.sender, _pid, _amount);
+        emit Claim(msg.sender, _pid, pending);
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) public {
-        PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         uint amount = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
 
-        pool.sponsorToken.safeTransfer(address(msg.sender), amount);
+        sponsorToken[_pid].safeTransfer(address(msg.sender), amount);
         emit EmergencyWithdraw(msg.sender, _pid, user.amount);
     }
 
