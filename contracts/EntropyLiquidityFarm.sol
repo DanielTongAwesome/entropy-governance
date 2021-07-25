@@ -74,7 +74,7 @@ contract EntropyLiquidityFarm is Ownable {
         uint256 _allocPoint,
         address _lpToken,
         bool _withUpdate
-    ) public onlyOwner {
+    ) external onlyOwner {
         require(isTokenAdded[_lpToken] == false, "SPFARM: SPONSOR TOKEN ALREADY IN POOL");
         isTokenAdded[_lpToken] = true;
         if (_withUpdate) {
@@ -98,7 +98,7 @@ contract EntropyLiquidityFarm is Ownable {
         uint256 _pid,
         uint256 _allocPoint,
         bool _withUpdate
-    ) public onlyOwner {
+    ) external onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -164,7 +164,7 @@ contract EntropyLiquidityFarm is Ownable {
     }
 
     // Deposit lp tokens to MasterChef for ENTROPY allocation.
-    function deposit(uint256 _pid, uint256 _amount) public {
+    function deposit(uint256 _pid, uint256 _amount) external {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -186,7 +186,7 @@ contract EntropyLiquidityFarm is Ownable {
     }
 
     // Withdraw lp tokens from MasterChef.
-    function withdraw(uint256 _pid, uint256 _amount) public {
+    function withdraw(uint256 _pid, uint256 _amount) external {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "SPFARM: INSUFFICIENT BALANCE");
@@ -206,7 +206,7 @@ contract EntropyLiquidityFarm is Ownable {
     }
 
     // Claim mint entropy tokens
-    function claim(uint256 _pid) public {
+    function claim(uint256 _pid) external {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -219,7 +219,7 @@ contract EntropyLiquidityFarm is Ownable {
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) public {
+    function emergencyWithdraw(uint256 _pid) external {
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         uint amount = user.amount;
@@ -231,7 +231,7 @@ contract EntropyLiquidityFarm is Ownable {
     }
 
     // Safe entropy transfer function, just in case if rounding error causes pool to not have enough ENTROPYs.
-    function safeEntropyTransfer(address _to, uint256 _amount) internal {
+    function safeEntropyTransfer(address _to, uint256 _amount) private {
         uint256 entropyBal = entropy.balanceOf(address(this));
         if (_amount > entropyBal) {
             entropy.transfer(_to, entropyBal);
