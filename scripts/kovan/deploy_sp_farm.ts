@@ -1,27 +1,25 @@
 /*
  * @Author: Zitian(Daniel) Tong
- * @Date: 2021-07-15 01:07:24
- * @LastEditTime: 2021-07-15 01:19:29
+ * @Date: 2021-07-23 01:00:41
+ * @LastEditTime: 2021-07-24 03:17:05
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
- * @FilePath: /entropy-governance/scripts/deploy_treasuryvester.ts
+ * @FilePath: /entropy-governance/scripts/deploy_sp_farm.ts
  */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts} = hre;
 const { getContractFactory } = ethers;
-import { chainName } from "./constants";
+import { chainName } from "../constants";
 import { BigNumber } from "ethers";
+import { parseEther } from "ethers/lib/utils";
 
 require("dotenv").config({ path: require("find-config")("../.env") });
 
 async function main() {
 
-    const VESTING_AMOUNT = process.env.VESTING_AMOUNT;
-    const VESTING_BEGIN = process.env.VESTING_BEGIN;
-    const VESTING_CLIFF = process.env.VESTING_CLIFF;
-    const VESTING_END = process.env.VESTING_END;
-
-
+    const ENTROPY_ADDRESS = process.env.ENTROPY_ADDRESS || "";
+    const ENTROPY_PER_BLOCK = process.env.ENTROPY_PER_BLOCK;
+    
     const chainId = parseInt(await getChainId(), 10);
     const {rep, recipient} = await getNamedAccounts();
 
@@ -31,14 +29,14 @@ async function main() {
 
 
     console.log("\n==========================================================================================");
-    console.log(`start deploying Treasury Vester Contract`);
+    console.log(`start deploying Sponsor Farming Contract`);
     console.log("==========================================================================================\n");
 
-    const vester = await getContractFactory('TreasuryVester');
-    const TreasuryVester = await vester.deploy(rep, recipient, BigNumber.from(VESTING_AMOUNT), BigNumber.from(VESTING_BEGIN), BigNumber.from(VESTING_CLIFF), BigNumber.from(VESTING_END));
+    const spFarm = await getContractFactory('EntropySponsorFarm');
+    const sponsorFarm = await spFarm.deploy(ENTROPY_ADDRESS, BigNumber.from(ENTROPY_PER_BLOCK));
 
     console.log("\n==========================================================================================");
-    console.log(`deployed Treasury Vester Contract at ${TreasuryVester.address}`);
+    console.log(`deployed Sponsor Farming Contract at ${sponsorFarm.address}`);
     console.log("==========================================================================================\n");
 
     console.log("Deployment ALL DONE !!!!!!");
