@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 00:35:06
- * @LastEditTime: 2021-07-14 16:14:59
+ * @LastEditTime: 2021-07-15 01:17:22
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
  * @FilePath: /entropy-governance/hardhat.config.ts
@@ -18,8 +18,13 @@ require("@nomiclabs/hardhat-etherscan");
 import {networks} from "./hardhat.networks";
 require("dotenv").config({  path: require("find-config")("./.env") });
 
+// for token deploy
 const ACCOUNT = process.env.ACCOUNT;
 const MINTER = process.env.MINTER;
+
+// for treasury vester deploy
+const REP_ADDRESS = process.env.REP_ADDRESS;
+const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS;
 
 const config = {
   solidity: {
@@ -59,6 +64,14 @@ const config = {
 
     minter: {
       default: MINTER,
+    },
+
+    rep: {
+      default: REP_ADDRESS,
+    },
+
+    recipient: {
+      default: RECIPIENT_ADDRESS,
     },
   },
 

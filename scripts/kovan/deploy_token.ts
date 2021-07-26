@@ -1,15 +1,15 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 22:37:34
- * @LastEditTime: 2021-07-14 17:26:49
+ * @LastEditTime: 2021-07-25 10:39:32
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
- * @FilePath: /entropy-governance/scripts/deploy_token.ts
+ * @FilePath: /entropy-governance/scripts/kovan/deploy_token.ts
  */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts} = hre;
 const { getContractFactory } = ethers;
-import { chainName } from "./constants";
+import { chainName } from "../constants";
 import { BigNumber } from "ethers";
 
 require("dotenv").config({ path: require("find-config")("../.env") });
