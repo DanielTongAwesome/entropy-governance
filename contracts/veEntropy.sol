@@ -14,7 +14,7 @@ contract veEntropy is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vot
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    event SetVoteVesterContract (address indexed proposer,address indexed vester);
+    event SetVoteVesterContract (address indexed proposer, address indexed vester);
 
     constructor(address voteVester_) ERC20("veEntropy", "veERP") ERC20Permit("veEntropy") {
         require(voteVester_ != address(0), "veERP: VESTING CONTRACT ZERO ADDRESS");
