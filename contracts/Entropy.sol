@@ -47,7 +47,7 @@ contract Entropy is ERC20, AccessControl, ERC20Permit {
      * @param _newMinter The new minter address
      */
     function setNewMinter(address _newMinter) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newMinter != address(0), "ERPERC20::constructor: account is zero address");
+        require(_newMinter != address(0), "ERPERC20::setNewMinter: account is zero address");
         revokeRole(MINTER_ROLE, minter);
         _setupRole(MINTER_ROLE, _newMinter);
     }
