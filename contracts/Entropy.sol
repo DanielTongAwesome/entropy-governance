@@ -9,9 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 contract Entropy is ERC20, AccessControl, ERC20Permit {
     using SafeMath for uint;
     
-    /// @notice Address which may mint new tokens
-    address public minter;  // DAO Contract in the future
-
     /// @notice The timestamp after which minting may occur
     uint public mintingAllowedAfter;
 
@@ -35,9 +32,7 @@ contract Entropy is ERC20, AccessControl, ERC20Permit {
         require(account != address(0),                  "ERPERC20::constructor: account is zero address");
         require(minter_ != address(0),                  "ERPERC20::constructor: minter_ is zero address");
         require(mintingAllowedAfter_ >= block.timestamp,"ERPERC20::constructor: minting can only begin after deployment");
-        _setupRole(DEFAULT_ADMIN_ROLE, minter_);
         _setupRole(MINTER_ROLE, minter_);
-        minter = minter_;
         mintingAllowedAfter = mintingAllowedAfter_;
         _mint(account, 1000000000 * 10 ** decimals());
     }
@@ -46,9 +41,9 @@ contract Entropy is ERC20, AccessControl, ERC20Permit {
      * @notice only default admin can set new minter
      * @param _newMinter The new minter address
      */
-    function setNewMinter(address _newMinter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setNewMinter(address _newMinter) public onlyRole(MINTER_ROLE) {
         require(_newMinter != address(0), "ERPERC20::setNewMinter: account is zero address");
-        revokeRole(MINTER_ROLE, minter);
+        revokeRole(MINTER_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, _newMinter);
     }
 
