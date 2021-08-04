@@ -32,6 +32,14 @@ contract veEntropy is ERC20, ERC20Burnable, AccessControl, ERC20Votes {
         revert("veERPERC20::transfer: veToken is non-transferable");
     }
 
+    function transferFrom(address sender, address recipient, uint256 amount) 
+        public
+        pure
+        override(ERC20) returns (bool)
+    {
+        revert("veERPERC20::transferFrom: veToken is non-transferable");
+    }
+
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
