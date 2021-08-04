@@ -27,6 +27,8 @@ contract Entropy is ERC20, AccessControl, ERC20Permit {
     /**
      * @notice Construct a new ERP token
      * @param account The initial account to grant all the tokens
+     * @param minter_ The DAO will make decisions on whether mint tokens after mintingAllowedAfter_
+     * @param mintingAllowedAfter_ A time limit for DAO to make decisions on token mint
      */
     constructor(address account, address minter_, uint mintingAllowedAfter_) ERC20("Entropy", "ERP") ERC20Permit("Entropy") {
         require(account != address(0),                  "ERPERC20::constructor: account is zero address");
