@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-contract veEntropy is ERC20, ERC20Burnable, AccessControl, ERC20Votes {
+contract veEntropy is ERC20, AccessControl, ERC20Votes {
 
     /// @notice define minter role
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -35,7 +35,6 @@ contract veEntropy is ERC20, ERC20Burnable, AccessControl, ERC20Votes {
      */
     function transfer(address recipient, uint256 amount) 
         public
-        pure
         override(ERC20) returns (bool)
     {
         revert("veERPERC20::transfer: veToken is non-transferable");
@@ -49,7 +48,6 @@ contract veEntropy is ERC20, ERC20Burnable, AccessControl, ERC20Votes {
      */
     function transferFrom(address sender, address recipient, uint256 amount) 
         public
-        pure
         override(ERC20) returns (bool)
     {
         revert("veERPERC20::transferFrom: veToken is non-transferable");
