@@ -42,6 +42,8 @@ contract EntropySponsorFarm is Ownable {
     IERC20[] public sponsorToken;
     // check if the sponsor token already been added or not
     mapping(address => bool) public isTokenAdded;
+    // check the pool ID from a specific sponsor token
+    mapping(address => uint256) public getPoolID;
     // Info of each user that stakes sponsor tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation poitns. Must be the sum of all allocation points in all pools.
@@ -90,6 +92,7 @@ contract EntropySponsorFarm is Ownable {
                 accEntropyPerShare: 0
             })
         );
+        getPoolID[_sponsorToken] = poolInfo.length.sub(1);
         emit LogPoolAddition(poolInfo.length.sub(1), _allocPoint, IERC20(_sponsorToken), _withUpdate);
     }
 
