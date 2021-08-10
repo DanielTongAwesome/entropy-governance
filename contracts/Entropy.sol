@@ -34,7 +34,8 @@ contract Entropy is ERC20, AccessControl, ERC20Permit {
         require(account != address(0),                  "ERPERC20::constructor: account is zero address");
         require(minter_ != address(0),                  "ERPERC20::constructor: minter_ is zero address");
         require(mintingAllowedAfter_ >= block.timestamp,"ERPERC20::constructor: minting can only begin after deployment");
-        _setupRole(MINTER_ROLE, minter_);
+        _setupRole(DEFAULT_ADMIN_ROLE,  minter_);
+        _setupRole(MINTER_ROLE,         minter_);
         mintingAllowedAfter = mintingAllowedAfter_;
         _mint(account, 1000000000 * 10 ** decimals());
     }
@@ -43,10 +44,18 @@ contract Entropy is ERC20, AccessControl, ERC20Permit {
      * @notice only default admin can set new minter
      * @param _newMinter The new minter address
      */
-    function setNewMinter(address _newMinter) public onlyRole(MINTER_ROLE) {
+    function approveNewMinter(address _newMinter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newMinter != address(0), "ERPERC20::setNewMinter: account is zero address");
-        revokeRole(MINTER_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, _newMinter);
+        grantRole(MINTER_ROLE, _newMinter);
+    }
+
+    /**
+     * @notice only default admin can revoke a minter
+     * @param _minter The preset minter address
+     */
+    function revokeNewMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_minter != address(0), "ERPERC20::setNewMinter: account is zero address");
+        revokeRole(MINTER_ROLE, _minter);
     }
 
     /**
