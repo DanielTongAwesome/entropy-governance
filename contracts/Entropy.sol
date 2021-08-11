@@ -5,15 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-contract Entropy is ERC20, AccessControl, ERC20Permit, ERC20Votes {
+contract Entropy is ERC20, AccessControl, ERC20Permit {
     using SafeMath for uint;
     
-    /// @notice Address which may mint new tokens
-    address public minter;
-    /// @notice Address of farm contract
-
     /// @notice The timestamp after which minting may occur
     uint public mintingAllowedAfter;
 
@@ -32,19 +27,39 @@ contract Entropy is ERC20, AccessControl, ERC20Permit, ERC20Votes {
     /**
      * @notice Construct a new ERP token
      * @param account The initial account to grant all the tokens
+     * @param minter_ The DAO will make decisions on whether mint tokens after mintingAllowedAfter_
+     * @param mintingAllowedAfter_ A time limit for DAO to make decisions on token mint
      */
     constructor(address account, address minter_, uint mintingAllowedAfter_) ERC20("Entropy", "ERP") ERC20Permit("Entropy") {
         require(account != address(0),                  "ERPERC20::constructor: account is zero address");
         require(minter_ != address(0),                  "ERPERC20::constructor: minter_ is zero address");
         require(mintingAllowedAfter_ >= block.timestamp,"ERPERC20::constructor: minting can only begin after deployment");
-        _setupRole(DEFAULT_ADMIN_ROLE, minter_);
-        _setupRole(MINTER_ROLE, minter_);
+        _setupRole(DEFAULT_ADMIN_ROLE,  minter_);
+        _setupRole(MINTER_ROLE,         minter_);
         mintingAllowedAfter = mintingAllowedAfter_;
         _mint(account, 1000000000 * 10 ** decimals());
     }
 
     /**
-     * @notice Mint new tokens
+     * @notice only default admin can set new minter
+     * @param _newMinter The new minter address
+     */
+    function approveNewMinter(address _newMinter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_newMinter != address(0), "ERPERC20::setNewMinter: account is zero address");
+        grantRole(MINTER_ROLE, _newMinter);
+    }
+
+    /**
+     * @notice only default admin can revoke a minter
+     * @param _minter The preset minter address
+     */
+    function revokeNewMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_minter != address(0), "ERPERC20::setNewMinter: account is zero address");
+        revokeRole(MINTER_ROLE, _minter);
+    }
+
+    /**
+     * @notice only minter can mint new tokens with time and amount limitation
      * @param to       The address of the destination account
      * @param amount    The number of tokens to be minted
      */
@@ -61,26 +76,5 @@ contract Entropy is ERC20, AccessControl, ERC20Permit, ERC20Votes {
 
         // mint the amount
         _mint(to, amount);
-    }
-
-    function _afterTokenTransfer(address from, address to, uint256 amount)
-        internal
-        override(ERC20, ERC20Votes)
-    {
-        super._afterTokenTransfer(from, to, amount);
-    }
-
-    function _mint(address to, uint256 amount)
-        internal
-        override(ERC20, ERC20Votes)
-    {
-        super._mint(to, amount);
-    }
-
-    function _burn(address account, uint256 amount)
-        internal
-        override(ERC20, ERC20Votes)
-    {
-        super._burn(account, amount);
     }
 }

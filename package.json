@@ -14,11 +14,13 @@
     "deploySPFarm:mainnet": "hardhat run --network mainnet ./scripts/kovan/deploy_sp_farm.ts",
     "deployLPFarm:mainnet": "hardhat run --network mainnet ./scripts/kovan/deploy_lp_farm.ts",
 
-    "deployToken:kovan":  "hardhat run --network kovan ./scripts/kovan/deploy_token.ts",
+    "deployToken:kovan":    "hardhat run --network kovan ./scripts/kovan/deploy_token.ts",
+    "deployveToken:kovan":  "hardhat run --network kovan ./scripts/kovan/deploy_veToken.ts",
     "deploySPFarm:kovan": "hardhat run --network kovan ./scripts/kovan/deploy_sp_farm.ts",
     "deployLPFarm:kovan": "hardhat run --network kovan ./scripts/kovan/deploy_lp_farm.ts",
 
-    "verifyToken:kovan":  "hardhat verify --network kovan 0xb9FA651d8b269D2822A500A7251AAbC277813fA7 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1628393571",
+    "verifyToken:kovan":    "hardhat verify --network kovan 0xb9FA651d8b269D2822A500A7251AAbC277813fA7 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1628393571",
+    "verifyveToken:kovan":  "hardhat verify --network kovan 0x5AF4e1F4EEA6e2fbC47A2287B5BC1A8e40564E84 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\"",
     "verifySPFarm:kovan": "hardhat verify --network kovan 0xC9B635371c501eE7eb3EA9267a07767AD0EEbec4 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000",
     "verifyLPFarm:kovan": "hardhat verify --network kovan 0xEF06B9d5cbd8DE0c7F80Cf01af7c9d973c632fB1 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000"
   },

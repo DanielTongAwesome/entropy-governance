@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 00:35:06
- * @LastEditTime: 2021-07-15 03:29:43
+ * @LastEditTime: 2021-08-04 01:30:19
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: unit test for entropy token
  * @FilePath: /entropy-governance/test/entropy.test.ts
@@ -73,9 +73,9 @@ describe("Entropy ERC20 Test", () => {
         })
     })
 
-    describe("setMinter function test", async () => {
+    describe("setNewMinter function test", async () => {
         it("should only allow preset minter to change the minter", async () => {
-            await expect(ERPERC20.setMinter(wallet2.address)).to.be.revertedWith("ERPERC20::setMinter: only the minter can change the minter address");
+            await expect(ERPERC20.setNewMinter(wallet2.address)).to.be.reverted;
         })
     })
 
