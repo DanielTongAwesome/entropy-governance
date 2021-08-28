@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 00:35:06
- * @LastEditTime: 2021-07-15 01:17:22
+ * @LastEditTime: 2021-08-28 00:28:55
  * @LastEditors: Zitian(Daniel) Tong
  * @Description: 
  * @FilePath: /entropy-governance/hardhat.config.ts
@@ -28,7 +28,8 @@ const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS;
 
 const config = {
   solidity: {
-    version: "0.8.2",
+    // version: "0.8.2",
+    version: "0.5.16",
     settings: {
       optimizer: {
         enabled: true,
@@ -45,7 +46,10 @@ const config = {
 	},
   
   paths: {
-    sources: "./contracts",
+    sources: "./contracts/governance",    // for governance
+    // sources: "./contracts/vesting", // for vesting
+    // sources: "./contracts/mining", // for mining
+
     artifacts: "./artifacts",
     // tests: "./test" 
     // deploy: 'deploy',
