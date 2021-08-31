@@ -3,7 +3,7 @@
 //  * @Date: 2021-07-15 03:30:12
 //  * @LastEditTime: 2021-07-15 03:34:00
 //  * @LastEditors: Zitian(Daniel) Tong
-//  * @Description: 
+//  * @Description:
 //  * @FilePath: /entropy-governance/test/TreasuryVester.test.ts
 //  */
 
