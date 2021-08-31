@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL 3.0
 pragma solidity ^0.5.16;
 
 // From https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/Math.sol
