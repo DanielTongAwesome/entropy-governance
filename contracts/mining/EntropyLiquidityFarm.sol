@@ -87,7 +87,7 @@ contract EntropyLiquidityFarm is Ownable {
 		totalAllocPoint = totalAllocPoint.add(_allocPoint);
 		lpToken.push(IERC20(_lpToken));
 		poolInfo.push(PoolInfo({ allocPoint: _allocPoint, lastRewardBlock: lastRewardBlock, accEntropyPerShare: 0 }));
-		getPoolID[_sponsorToken] = poolInfo.length.sub(1);
+		getPoolID[_lpToken] = poolInfo.length.sub(1);
 		emit LogPoolAddition(poolInfo.length.sub(1), _allocPoint, IERC20(_lpToken), _withUpdate);
 	}
 
@@ -183,7 +183,7 @@ contract EntropyLiquidityFarm is Ownable {
 		UserInfo storage user = userInfo[_pid][msg.sender];
 		updatePool(_pid);
 		uint256 pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
-		user.rewardDebt = pending;
+		user.rewardDebt.add(pending);
 		safeEntropyTransfer(msg.sender, pending);
 		emit Claim(msg.sender, _pid, pending);
 	}

@@ -183,7 +183,7 @@ contract EntropySponsorFarm is Ownable {
 		UserInfo storage user = userInfo[_pid][msg.sender];
 		updatePool(_pid);
 		uint256 pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
-		user.rewardDebt = pending;
+		user.rewardDebt.add(pending);
 		safeEntropyTransfer(msg.sender, pending);
 		emit Claim(msg.sender, _pid, pending);
 	}
