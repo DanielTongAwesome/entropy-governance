@@ -182,8 +182,9 @@ contract EntropyLiquidityFarm is Ownable {
 		PoolInfo storage pool = poolInfo[_pid];
 		UserInfo storage user = userInfo[_pid][msg.sender];
 		updatePool(_pid);
-		uint256 pending = user.amount.mul(pool.accEntropyPerShare).div(1e12).sub(user.rewardDebt);
-		user.rewardDebt.add(pending);
+		uint256 accumulatedEntropy = user.amount.mul(pool.accEntropyPerShare).div(1e12);
+		uint256 pending = accumulatedEntropy.sub(user.rewardDebt);
+		user.rewardDebt = accumulatedEntropy;
 		safeEntropyTransfer(msg.sender, pending);
 		emit Claim(msg.sender, _pid, pending);
 	}
