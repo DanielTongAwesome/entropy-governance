@@ -62,7 +62,7 @@ export const networks: NetworksUserConfig = {
 
 	matic: {
 		chainId: 137,
-		url: process.env.MATIC_MAINNET_URL,
+		url: process.env.MATIC_MAINNET_URL || "",
 		accounts: {
 			mnemonic: process.env.MNEMONIC,
 		},
@@ -70,7 +70,7 @@ export const networks: NetworksUserConfig = {
 
 	matic_mumbai: {
 		chainId: 80001,
-		url: process.env.MATIC_MUMBAI_URL,
+		url: process.env.MATIC_MUMBAI_URL || "",
 		accounts: {
 			mnemonic: process.env.MNEMONIC,
 		},
@@ -78,7 +78,7 @@ export const networks: NetworksUserConfig = {
 
 	arbitrum_testnet: {
 		chainId: 421611,
-		url: process.env.ARBITRUM_TESTNET_URL,
+		url: process.env.ARBITRUM_TESTNET_URL || "",
 		accounts: {
 			mnemonic: process.env.MNEMONIC,
 		},

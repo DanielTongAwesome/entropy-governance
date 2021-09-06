@@ -9,7 +9,7 @@
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
 const { getContractFactory } = ethers;
-import { chainName } from "../constants";
+import { chainName } from "./constants";
 import { BigNumber } from "ethers";
 
 require("dotenv").config({ path: require("find-config")("../.env") });

@@ -10,12 +10,12 @@ import { networks } from "./hardhat.networks";
 require("dotenv").config({ path: require("find-config")("./.env") });
 
 // for token deploy
-const ACCOUNT = process.env.ACCOUNT;
-const MINTER = process.env.MINTER;
+const ACCOUNT = process.env.ACCOUNT || "";
+const MINTER = process.env.MINTER || "";
 
 // for treasury vester deploy
-const REP_ADDRESS = process.env.REP_ADDRESS;
-const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS;
+const REP_ADDRESS = process.env.REP_ADDRESS || "";
+const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS || "";
 
 const config = {
 	solidity: {
