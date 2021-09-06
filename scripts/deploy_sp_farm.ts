@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-07-24 03:17:05
+ * @LastEditTime: 2021-09-06 12:38:18
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
  * @FilePath: /entropy-governance/scripts/deploy_sp_farm.ts
@@ -9,7 +9,7 @@
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
 const { getContractFactory } = ethers;
-import { chainName } from "../constants";
+import { chainName } from "./constants";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
@@ -35,6 +35,8 @@ async function main() {
 
 	console.log("\n==========================================================================================");
 	console.log(`deployed Sponsor Farming Contract at ${sponsorFarm.address}`);
+	console.log(`token address: ${ENTROPY_ADDRESS}`);
+	console.log(`entropy per block: ${BigNumber.from(ENTROPY_PER_BLOCK)}`)
 	console.log("==========================================================================================\n");
 
 	console.log("Deployment ALL DONE !!!!!!");

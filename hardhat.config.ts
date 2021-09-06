@@ -65,19 +65,38 @@ const config = {
 	namedAccounts: {
 		account: {
 			default: ACCOUNT,
-			1: ACCOUNT,
+			1: ACCOUNT,		// ETH Mainnet
+			42: ACCOUNT,	// ETH-Kovan
+			137: ACCOUNT,	// MATIC Mainnet
+			80001: ACCOUNT,	// MATIC Mumbai
+			421611: ACCOUNT,// Arbitrum Testnet
 		},
 
 		minter: {
 			default: MINTER,
+			1: MINTER,
+			42: MINTER,
+			137: MINTER,
+			80001: MINTER,
+			421611: MINTER,
 		},
 
 		rep: {
 			default: REP_ADDRESS,
+			1: REP_ADDRESS,
+			42: REP_ADDRESS,
+			137: REP_ADDRESS,
+			80001: REP_ADDRESS,
+			421611: REP_ADDRESS,
 		},
 
 		recipient: {
 			default: RECIPIENT_ADDRESS,
+			1: RECIPIENT_ADDRESS,
+			42: RECIPIENT_ADDRESS,
+			137: RECIPIENT_ADDRESS,
+			80001: RECIPIENT_ADDRESS,
+			421611: RECIPIENT_ADDRESS,
 		},
 	},
 
