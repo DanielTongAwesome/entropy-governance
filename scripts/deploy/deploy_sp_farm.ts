@@ -1,15 +1,15 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-09-06 12:38:27
+ * @LastEditTime: 2021-09-06 12:38:18
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
- * @FilePath: /entropy-governance/scripts/deploy_lp_farm.ts
+ * @FilePath: /entropy-governance/scripts/deploy_sp_farm.ts
  */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
 const { getContractFactory } = ethers;
-import { chainName } from "./constants";
+import { chainName } from "../miscs/constants";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
@@ -27,14 +27,14 @@ async function main() {
 	console.log("==========================================================================================\n");
 
 	console.log("\n==========================================================================================");
-	console.log(`start deploying Liquidity Farming Contract`);
+	console.log(`start deploying Sponsor Farming Contract`);
 	console.log("==========================================================================================\n");
 
-	const spFarm = await getContractFactory("EntropyLiquidityFarm");
+	const spFarm = await getContractFactory("EntropySponsorFarm");
 	const sponsorFarm = await spFarm.deploy(ENTROPY_ADDRESS, BigNumber.from(ENTROPY_PER_BLOCK));
 
 	console.log("\n==========================================================================================");
-	console.log(`deployed Liquidity Farming Contract at ${sponsorFarm.address}`);
+	console.log(`deployed Sponsor Farming Contract at ${sponsorFarm.address}`);
 	console.log(`token address: ${ENTROPY_ADDRESS}`);
 	console.log(`entropy per block: ${BigNumber.from(ENTROPY_PER_BLOCK)}`)
 	console.log("==========================================================================================\n");
