@@ -1,10 +1,10 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-15 01:07:24
- * @LastEditTime: 2021-07-15 01:19:29
+ * @LastEditTime: 2021-09-08 11:36:14
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
- * @FilePath: /entropy-governance/scripts/deploy_treasuryvester.ts
+ * @FilePath: /entropy-governance/scripts/deploy/deploy_treasuryvester.ts
  */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
@@ -12,16 +12,10 @@ const { getContractFactory } = ethers;
 import { chainName } from "../miscs/constants";
 import { BigNumber } from "ethers";
 
-require("dotenv").config({ path: require("find-config")("../.env") });
-
 async function main() {
-	const VESTING_AMOUNT = process.env.VESTING_AMOUNT;
-	const VESTING_BEGIN = process.env.VESTING_BEGIN;
-	const VESTING_CLIFF = process.env.VESTING_CLIFF;
-	const VESTING_END = process.env.VESTING_END;
 
 	const chainId = parseInt(await getChainId(), 10);
-	const { rep, recipient } = await getNamedAccounts();
+	const { erp, recipient, vestAmount, vestBegin, vestClif, vestEnd } = await getNamedAccounts();
 
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
@@ -33,16 +27,22 @@ async function main() {
 
 	const vester = await getContractFactory("TreasuryVester");
 	const TreasuryVester = await vester.deploy(
-		rep,
+		erp,
 		recipient,
-		BigNumber.from(VESTING_AMOUNT),
-		BigNumber.from(VESTING_BEGIN),
-		BigNumber.from(VESTING_CLIFF),
-		BigNumber.from(VESTING_END)
+		BigNumber.from(vestAmount),
+		BigNumber.from(vestBegin),
+		BigNumber.from(vestClif),
+		BigNumber.from(vestEnd)
 	);
 
 	console.log("\n==========================================================================================");
 	console.log(`deployed Treasury Vester Contract at ${TreasuryVester.address}`);
+	console.log(`token address: 	${erp}`);
+	console.log(`recipient address: ${recipient}`);
+	console.log(`vesting amount: 	${vestAmount}`);
+	console.log(`vesting begin:	 	${vestBegin}`);
+	console.log(`vesting clif: 		${vestClif}`);
+	console.log(`vesting end: 		${vestEnd}`);
 	console.log("==========================================================================================\n");
 
 	console.log("Deployment ALL DONE !!!!!!");

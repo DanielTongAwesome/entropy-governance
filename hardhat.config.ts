@@ -12,10 +12,18 @@ require("dotenv").config({ path: require("find-config")("./.env") });
 // for token deploy
 const ACCOUNT = process.env.ACCOUNT || "";
 const MINTER = process.env.MINTER || "";
+const MINTINGALLOWEDAFTER = process.env.MINTINGALLOWEDAFTER || "";
+
+// for sponsor farming deploy
+const ENTROPY_ADDRESS = process.env.ENTROPY_ADDRESS || "";
+const ENTROPY_PER_BLOCK = process.env.ENTROPY_PER_BLOCK || "";
 
 // for treasury vester deploy
-const REP_ADDRESS = process.env.REP_ADDRESS || "";
 const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS || "";
+const VESTING_AMOUNT = process.env.VESTING_AMOUNT || "";
+const VESTING_BEGIN = process.env.VESTING_BEGIN || "";
+const VESTING_CLIFF = process.env.VESTING_CLIFF || "";
+const VESTING_END = process.env.VESTING_END || "";
 
 const config = {
 	solidity: {
@@ -72,6 +80,15 @@ const config = {
 			421611: ACCOUNT,// Arbitrum Testnet
 		},
 
+		timeAfter: {
+			default: MINTINGALLOWEDAFTER,
+			1: MINTINGALLOWEDAFTER,		// ETH Mainnet
+			42: MINTINGALLOWEDAFTER,	// ETH-Kovan
+			137: MINTINGALLOWEDAFTER,	// MATIC Mainnet
+			80001: MINTINGALLOWEDAFTER,	// MATIC Mumbai
+			421611: MINTINGALLOWEDAFTER,// Arbitrum Testnet
+		},
+
 		minter: {
 			default: MINTER,
 			1: MINTER,
@@ -81,13 +98,22 @@ const config = {
 			421611: MINTER,
 		},
 
-		rep: {
-			default: REP_ADDRESS,
-			1: REP_ADDRESS,
-			42: REP_ADDRESS,
-			137: REP_ADDRESS,
-			80001: REP_ADDRESS,
-			421611: REP_ADDRESS,
+		erp: {
+			default: ENTROPY_ADDRESS,
+			1: ENTROPY_ADDRESS,
+			42: ENTROPY_ADDRESS,
+			137: ENTROPY_ADDRESS,
+			80001: ENTROPY_ADDRESS,
+			421611: ENTROPY_ADDRESS,
+		},
+
+		perBlock: {
+			default: ENTROPY_PER_BLOCK,
+			1: ENTROPY_PER_BLOCK,
+			42: ENTROPY_PER_BLOCK,
+			137: ENTROPY_PER_BLOCK,
+			80001: ENTROPY_PER_BLOCK,
+			421611: ENTROPY_PER_BLOCK,
 		},
 
 		recipient: {
@@ -97,6 +123,42 @@ const config = {
 			137: RECIPIENT_ADDRESS,
 			80001: RECIPIENT_ADDRESS,
 			421611: RECIPIENT_ADDRESS,
+		},
+
+		vestAmount: {
+			default: VESTING_AMOUNT,
+			1: VESTING_AMOUNT,
+			42: VESTING_AMOUNT,
+			137: VESTING_AMOUNT,
+			80001: VESTING_AMOUNT,
+			421611: VESTING_AMOUNT,
+		},
+
+		vestBegin: {
+			default: VESTING_BEGIN,
+			1: VESTING_BEGIN,
+			42: VESTING_BEGIN,
+			137: VESTING_BEGIN,
+			80001: VESTING_BEGIN,
+			421611: VESTING_BEGIN,
+		},
+
+		vestClif: {
+			default: VESTING_CLIFF,
+			1: VESTING_CLIFF,
+			42: VESTING_CLIFF,
+			137: VESTING_CLIFF,
+			80001: VESTING_CLIFF,
+			421611: VESTING_CLIFF,
+		},
+
+		vestEnd: {
+			default: VESTING_END,
+			1: VESTING_END,
+			42: VESTING_END,
+			137: VESTING_END,
+			80001: VESTING_END,
+			421611: VESTING_END,
 		},
 	},
 

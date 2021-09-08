@@ -1,10 +1,10 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-09-06 12:38:18
+ * @LastEditTime: 2021-09-08 11:30:33
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
- * @FilePath: /entropy-governance/scripts/deploy_sp_farm.ts
+ * @FilePath: /entropy-governance/scripts/deploy/deploy_sp_farm.ts
  */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
@@ -13,14 +13,9 @@ import { chainName } from "../miscs/constants";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
-require("dotenv").config({ path: require("find-config")("../.env") });
-
 async function main() {
-	const ENTROPY_ADDRESS = process.env.ENTROPY_ADDRESS || "";
-	const ENTROPY_PER_BLOCK = process.env.ENTROPY_PER_BLOCK;
-
 	const chainId = parseInt(await getChainId(), 10);
-	const { rep, recipient } = await getNamedAccounts();
+	const { erp, perBlock } = await getNamedAccounts();
 
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
@@ -31,12 +26,12 @@ async function main() {
 	console.log("==========================================================================================\n");
 
 	const spFarm = await getContractFactory("EntropySponsorFarm");
-	const sponsorFarm = await spFarm.deploy(ENTROPY_ADDRESS, BigNumber.from(ENTROPY_PER_BLOCK));
+	const sponsorFarm = await spFarm.deploy(erp, BigNumber.from(perBlock));
 
 	console.log("\n==========================================================================================");
 	console.log(`deployed Sponsor Farming Contract at ${sponsorFarm.address}`);
-	console.log(`token address: ${ENTROPY_ADDRESS}`);
-	console.log(`entropy per block: ${BigNumber.from(ENTROPY_PER_BLOCK)}`)
+	console.log(`token address: ${erp}`);
+	console.log(`entropy per block: ${BigNumber.from(perBlock)}`)
 	console.log("==========================================================================================\n");
 
 	console.log("Deployment ALL DONE !!!!!!");

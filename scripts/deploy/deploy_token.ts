@@ -1,10 +1,10 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 22:37:34
- * @LastEditTime: 2021-09-06 12:37:15
+ * @LastEditTime: 2021-09-08 07:56:34
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
- * @FilePath: /entropy-governance/scripts/deploy_token.ts
+ * @FilePath: /entropy-governance/scripts/deploy/deploy_token.ts
  */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
@@ -12,12 +12,9 @@ const { getContractFactory } = ethers;
 import { chainName } from "../miscs/constants";
 import { BigNumber } from "ethers";
 
-require("dotenv").config({ path: require("find-config")("../.env") });
-
 async function main() {
-	const afterTime = process.env.MINTINGALLOWEDAFTER;
 	const chainId = parseInt(await getChainId(), 10);
-	const { account, minter } = await getNamedAccounts();
+	const { account, timeAfter, minter } = await getNamedAccounts();
 
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
@@ -28,13 +25,13 @@ async function main() {
 	console.log("==========================================================================================\n");
 
 	const EntropyERC20 = await getContractFactory("Entropy");
-	const GovernanceToken = await EntropyERC20.deploy(account, minter, BigNumber.from(afterTime));
+	const GovernanceToken = await EntropyERC20.deploy(account, minter, BigNumber.from(timeAfter));
 
 	console.log("\n==========================================================================================");
 	console.log(`deployed token at ${GovernanceToken.address}`);
 	console.log(`Set the account: 			  ${account}`);
 	console.log(`Set the minter: 			  ${minter}`);
-	console.log(`Set the mintingAllowedAfter: ${BigNumber.from(afterTime)}`)
+	console.log(`Set the mintingAllowedAfter: ${BigNumber.from(timeAfter)}`)
 	console.log("==========================================================================================\n");
 
 	console.log("Deployment ALL DONE !!!!!!");
