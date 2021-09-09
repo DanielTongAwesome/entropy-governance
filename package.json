@@ -1,47 +1,53 @@
 {
-  "name": "entropy-governance",
-  "version": "1.0.0",
-  "description": "entropy defi project governance token related smart contracts",
-  "main": "index.js",
-  "repository": "git@github.com:entropyfi/entropy-governance.git",
-  "author": "DanielTongAwesome <danieltongubc@gmail.com>",
-  "license": "GPL 3.0",
-  "scripts": {
-    "compile": "hardhat compile",
-    "test": "hardhat test ./test/*.test.ts",
-
-    "deployToken:mainnet":  "hardhat run --network mainnet ./scripts/kovan/deploy_token.ts",
-    "deploySPFarm:mainnet": "hardhat run --network mainnet ./scripts/kovan/deploy_sp_farm.ts",
-    "deployLPFarm:mainnet": "hardhat run --network mainnet ./scripts/kovan/deploy_lp_farm.ts",
-
-    "deployToken:kovan":    "hardhat run --network kovan ./scripts/kovan/deploy_token.ts",
-    "deployveToken:kovan":  "hardhat run --network kovan ./scripts/kovan/deploy_veToken.ts",
-    "deploySPFarm:kovan": "hardhat run --network kovan ./scripts/kovan/deploy_sp_farm.ts",
-    "deployLPFarm:kovan": "hardhat run --network kovan ./scripts/kovan/deploy_lp_farm.ts",
-
-    "verifyToken:kovan":    "hardhat verify --network kovan 0xA403e5a12bD5164BA80ac1C61f1D3cB0f67Ec0c5 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1660249050",
-    "verifyveToken:kovan":  "hardhat verify --network kovan 0x5AF4e1F4EEA6e2fbC47A2287B5BC1A8e40564E84 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\"",
-    "verifySPFarm:kovan": "hardhat verify --network kovan 0xC9B635371c501eE7eb3EA9267a07767AD0EEbec4 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000",
-    "verifyLPFarm:kovan": "hardhat verify --network kovan 0xEF06B9d5cbd8DE0c7F80Cf01af7c9d973c632fB1 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000"
-  },
-  "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.0",
-    "@nomiclabs/hardhat-etherscan": "^2.1.4",
-    "@nomiclabs/hardhat-waffle": "^2.0.0",
-    "@openzeppelin/contracts": "^4.2.0",
-    "@typechain/ethers-v5": "^7.0.1",
-    "@typechain/hardhat": "^2.1.2",
-    "@types/mocha": "^8.2.3",
-    "chai": "^4.3.4",
-    "chai-as-promised": "^7.1.1",
-    "dotenv": "^10.0.0",
-    "ethereum-waffle": "^3.0.0",
-    "ethers": "^5.0.0",
-    "find-config": "^1.0.0",
-    "hardhat": "^2.4.3",
-    "hardhat-contract-sizer": "^2.0.3",
-    "hardhat-deploy": "^0.8.11",
-    "ts-node": "^10.1.0",
-    "typechain": "^5.1.1"
-  }
+	"name": "entropy-governance",
+	"version": "1.0.0",
+	"description": "entropy defi project governance token related smart contracts",
+	"main": "index.js",
+	"repository": "git@github.com:entropyfi/entropy-governance.git",
+	"author": "DanielTongAwesome <danieltongubc@gmail.com>",
+	"license": "GPL-3.0",
+	"scripts": {
+		"compile": "hardhat compile",
+		"test": "hardhat test ./test/*.test.ts",
+		"format": "prettier --write \"./**/*.{ts,sol}\"",
+		
+		"deployToken:mainnet": "hardhat run --network mainnet ./scripts/deploy_token.ts",
+		"deploySPFarm:mainnet": "hardhat run --network mainnet ./scripts/deploy_sp_farm.ts",
+		"deployLPFarm:mainnet": "hardhat run --network mainnet ./scripts/deploy_lp_farm.ts",
+		
+		"deployToken:kovan": "hardhat run --network kovan ./scripts/deploy_token.ts",
+		"deployveToken:kovan": "hardhat run --network kovan ./scripts/deploy_veToken.ts",
+		"deploySPFarm:kovan": "hardhat run --network kovan ./scripts/deploy_sp_farm.ts",
+		"deployLPFarm:kovan": "hardhat run --network kovan ./scripts/deploy_lp_farm.ts",
+		
+		"verifyToken:kovan": "hardhat verify --network kovan 0xA403e5a12bD5164BA80ac1C61f1D3cB0f67Ec0c5 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1660249050",
+		"verifyveToken:kovan": "hardhat verify --network kovan 0x5AF4e1F4EEA6e2fbC47A2287B5BC1A8e40564E84 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\"",
+		"verifySPFarm:kovan": "hardhat verify --network kovan 0xC9B635371c501eE7eb3EA9267a07767AD0EEbec4 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000",
+		"verifyLPFarm:kovan": "hardhat verify --network kovan 0xEF06B9d5cbd8DE0c7F80Cf01af7c9d973c632fB1 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000"
+	},
+	"devDependencies": {
+		"@nomiclabs/hardhat-ethers": "^2.0.2",
+		"@nomiclabs/hardhat-etherscan": "^2.1.6",
+		"@nomiclabs/hardhat-waffle": "^2.0.1",
+		"@openzeppelin/contracts": "^4.2.0",
+		"@typechain/ethers-v5": "^7.0.1",
+		"@typechain/hardhat": "^2.3.0",
+		"@types/chai": "^4.2.21",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "^16.7.8",
+		"chai": "^4.3.4",
+		"chai-as-promised": "^7.1.1",
+		"dotenv": "^10.0.0",
+		"ethereum-waffle": "^3.4.0",
+		"ethers": "^5.4.6",
+		"find-config": "^1.0.0",
+		"hardhat": "^2.6.2",
+		"hardhat-contract-sizer": "^2.0.3",
+		"hardhat-deploy": "^0.9.0",
+		"prettier": "^2.3.2",
+		"prettier-plugin-solidity": "^1.0.0-beta.17",
+		"ts-node": "^10.2.1",
+		"typechain": "^5.1.2",
+		"typescript": "^4.4.2"
+	}
 }
