@@ -19,9 +19,9 @@
 		"deploySPFarm:kovan": "hardhat run --network kovan ./scripts/deploy/deploy_sp_farm.ts",
 		"deployLPFarm:kovan": "hardhat run --network kovan ./scripts/deploy/deploy_lp_farm.ts",
 		
-		"verifyToken:kovan": "hardhat verify --network kovan 0xA403e5a12bD5164BA80ac1C61f1D3cB0f67Ec0c5 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1660249050",
-		"verifySPFarm:kovan": "hardhat verify --network kovan 0xC9B635371c501eE7eb3EA9267a07767AD0EEbec4 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000",
-		"verifyLPFarm:kovan": "hardhat verify --network kovan 0xEF06B9d5cbd8DE0c7F80Cf01af7c9d973c632fB1 \"0xb9FA651d8b269D2822A500A7251AAbC277813fA7\" 20000000000000000000"
+		"verifyToken:kovan": "hardhat verify --network kovan 0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
+		"verifySPFarm:kovan": "hardhat verify --network kovan 0x159e02795eaD816cE0792F932BE7B36444F82dC6 \"0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1\" 20000000000000000000",
+		"verifyLPFarm:kovan": "hardhat verify --network kovan 0x266DC2a0861E5b57636a432Ae5D06D52A6F18ec0 \"0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1\" 20000000000000000000"
 	},
 	"devDependencies": {
 		"@nomiclabs/hardhat-ethers": "^2.0.2",

@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 22:37:34
- * @LastEditTime: 2021-09-08 07:56:34
+ * @LastEditTime: 2021-09-09 12:04:27
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
  * @FilePath: /entropy-governance/scripts/deploy/deploy_token.ts
@@ -14,7 +14,9 @@ import { BigNumber } from "ethers";
 
 async function main() {
 	const chainId = parseInt(await getChainId(), 10);
-	const { account, timeAfter, minter } = await getNamedAccounts();
+	const account = "0xfD9656df3E4Dca84C260137AECBA416050aea145";
+	const minter = "0xfD9656df3E4Dca84C260137AECBA416050aea145";
+	const timeAfter = 1662773796;
 
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
@@ -22,16 +24,16 @@ async function main() {
 
 	console.log("\n==========================================================================================");
 	console.log(`start deploying Entropy Governance Token`);
+	console.log(`Set the account: 			  ${account}`);
+	console.log(`Set the minter: 			  ${minter}`);
+	console.log(`Set the mintingAllowedAfter: ${timeAfter}`)
 	console.log("==========================================================================================\n");
 
 	const EntropyERC20 = await getContractFactory("Entropy");
-	const GovernanceToken = await EntropyERC20.deploy(account, minter, BigNumber.from(timeAfter));
+	const GovernanceToken = await EntropyERC20.deploy(account, minter, timeAfter);
 
 	console.log("\n==========================================================================================");
 	console.log(`deployed token at ${GovernanceToken.address}`);
-	console.log(`Set the account: 			  ${account}`);
-	console.log(`Set the minter: 			  ${minter}`);
-	console.log(`Set the mintingAllowedAfter: ${BigNumber.from(timeAfter)}`)
 	console.log("==========================================================================================\n");
 
 	console.log("Deployment ALL DONE !!!!!!");

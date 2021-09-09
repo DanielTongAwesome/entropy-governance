@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-09-08 11:30:33
+ * @LastEditTime: 2021-09-09 12:28:37
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
  * @FilePath: /entropy-governance/scripts/deploy/deploy_sp_farm.ts
@@ -15,7 +15,8 @@ import { parseEther } from "ethers/lib/utils";
 
 async function main() {
 	const chainId = parseInt(await getChainId(), 10);
-	const { erp, perBlock } = await getNamedAccounts();
+	const erp = "0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1";
+	const perBlock = parseEther('20');
 
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
@@ -23,15 +24,15 @@ async function main() {
 
 	console.log("\n==========================================================================================");
 	console.log(`start deploying Sponsor Farming Contract`);
+	console.log(`token address: ${erp}`);
+	console.log(`entropy per block: ${perBlock}`)
 	console.log("==========================================================================================\n");
 
 	const spFarm = await getContractFactory("EntropySponsorFarm");
-	const sponsorFarm = await spFarm.deploy(erp, BigNumber.from(perBlock));
+	const sponsorFarm = await spFarm.deploy(erp, perBlock);
 
 	console.log("\n==========================================================================================");
 	console.log(`deployed Sponsor Farming Contract at ${sponsorFarm.address}`);
-	console.log(`token address: ${erp}`);
-	console.log(`entropy per block: ${BigNumber.from(perBlock)}`)
 	console.log("==========================================================================================\n");
 
 	console.log("Deployment ALL DONE !!!!!!");
