@@ -164,6 +164,7 @@ const config = {
 
 	etherscan: {
 		apiKey: process.env.ETHERSCAN_API,
+		// apiKey: process.env.POLYSCAN_API,
 	},
 
 	networks,
