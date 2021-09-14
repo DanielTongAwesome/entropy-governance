@@ -10,27 +10,21 @@
 		"compile": "hardhat compile",
 		"test": "hardhat test ./test/*.test.ts",
 		"format": "prettier --write \"./**/*.{ts,sol}\"",
-		
 		"deployToken:mainnet": "hardhat run --network mainnet ./scripts/deploy/deploy_token.ts",
 		"deploySPFarm:mainnet": "hardhat run --network mainnet ./scripts/deploy/deploy_sp_farm.ts",
 		"deployLPFarm:mainnet": "hardhat run --network mainnet ./scripts/deploy/deploy_lp_farm.ts",
-		
-		"deployToken:kovan":  "hardhat run --network kovan ./scripts/deploy/deploy_token.ts",
+		"deployToken:kovan": "hardhat run --network kovan ./scripts/deploy/deploy_token.ts",
 		"deploySPFarm:kovan": "hardhat run --network kovan ./scripts/deploy/deploy_sp_farm.ts",
 		"deployLPFarm:kovan": "hardhat run --network kovan ./scripts/deploy/deploy_lp_farm.ts",
-		
-		"deployToken:mumbai":  "hardhat run --network matic_mumbai ./scripts/deploy/deploy_token.ts",
+		"deployToken:mumbai": "hardhat run --network matic_mumbai ./scripts/deploy/deploy_token.ts",
 		"deploySPFarm:mumbai": "hardhat run --network matic_mumbai ./scripts/deploy/deploy_sp_farm.ts",
 		"deployLPFarm:mumbai": "hardhat run --network matic_mumbai ./scripts/deploy/deploy_lp_farm.ts",
-		
-		"verifyToken:kovan":  "hardhat verify --network kovan 0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
+		"verifyToken:kovan": "hardhat verify --network kovan 0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
 		"verifySPFarm:kovan": "hardhat verify --network kovan 0x159e02795eaD816cE0792F932BE7B36444F82dC6 \"0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1\" 20000000000000000000",
 		"verifyLPFarm:kovan": "hardhat verify --network kovan 0x266DC2a0861E5b57636a432Ae5D06D52A6F18ec0 \"0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1\" 20000000000000000000",
-	
-		"verifyToken:mumbai":  "hardhat verify --network matic_mumbai 0x775D2b13D9D80e7691Cf9C223567481B2A278755 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
+		"verifyToken:mumbai": "hardhat verify --network matic_mumbai 0x775D2b13D9D80e7691Cf9C223567481B2A278755 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
 		"verifySPFarm:mumbai": "hardhat verify --network matic_mumbai 0x35983140e2477F797343f376B59689B94da1a87D \"0x775D2b13D9D80e7691Cf9C223567481B2A278755\" 20000000000000000000",
 		"verifyLPFarm:mumbai": "hardhat verify --network matic_mumbai 0x00788Cb399E19FFEDE72CD85bfafe761001C9507 \"0x775D2b13D9D80e7691Cf9C223567481B2A278755\" 20000000000000000000"
-	
 	},
 	"devDependencies": {
 		"@nomiclabs/hardhat-ethers": "^2.0.2",

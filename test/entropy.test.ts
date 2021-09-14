@@ -1,22 +1,16 @@
-/*
- * @Author: Zitian(Daniel) Tong
- * @Date: 2021-07-13 00:35:06
- * @LastEditTime: 2021-08-04 01:30:19
- * @LastEditors: Zitian(Daniel) Tong
- * @Description: unit test for entropy token
- * @FilePath: /entropy-governance/test/entropy.test.ts
- */
-
-import { expect, use } from "chai";
-import { solidity, MockProvider, createFixtureLoader, deployContract } from "ethereum-waffle";
+import { ethers, waffle, getNamedAccounts } from "hardhat";
+const { getContractFactory, getSigner } = ethers;
+const {} = waffle
+import { expect} from "chai";
+import { MockProvider, createFixtureLoader, deployContract } from "ethereum-waffle";
 import { BigNumber, Contract } from "ethers";
-import { formatBytes32String, parseEther, toUtf8Bytes } from "ethers/lib/utils";
-import { ERC20, IERC20__factory } from "../types";
+import { Entropy } from "../types";
 import { v2Fixture } from "./shared/fixtures";
+import {AddressZero, MaxUint256} from "@ethersproject/constants";
+import { parseEther } from "ethers/lib/utils";
 
 require("dotenv").config({ path: require("find-config")("../.env") });
 
-use(solidity);
 const overrides = {
 	gasLimit: 999999999999999,
 };
@@ -30,52 +24,87 @@ describe("Entropy ERC20 Test", () => {
 		},
 	});
 
-	const [wallet1, wallet2, wallet3] = provider.getWallets();
-	const loadFixture = createFixtureLoader([wallet1, wallet2, wallet3], provider);
+	const [account, wallet1, wallet2] = provider.getWallets();
+	const loadFixture = createFixtureLoader([account, wallet1], provider);
 
-	const ACCOUNT = process.env.ACCOUNT;
-	const MINTER = process.env.MINTER;
-	const MINTINGALLOWEDAFTER = process.env.MINTINGALLOWEDAFTER;
+	const afterTime = 1660249050;
+	const startTime = 1609459200;
 
-	let ERPERC20: Contract;
+	let erpToken: Entropy;
+
+	beforeEach(async () => {
+		await provider.send("evm_mine", [startTime]);
+	});
 
 	beforeEach(async () => {
 		const fixture = await loadFixture(v2Fixture);
-		ERPERC20 = fixture.ERPToken;
+		erpToken = fixture.erpToken;
 	});
+
 
 	describe("Deploy ERP ERC20 Token Smart Contract", async () => {
 		it("should have correct token name", async () => {
-			expect(await ERPERC20.name()).to.be.eq("Entropy");
+			expect(await erpToken.name()).to.be.eq("Entropy");
 		});
 		it("should have correct token symbol", async () => {
-			expect(await ERPERC20.symbol()).to.be.eq("ERP");
+			expect(await erpToken.symbol()).to.be.eq("ERP");
 		});
 
 		it("should have correct token decimals", async () => {
-			expect(await ERPERC20.decimals()).to.be.eq(18);
+			expect(await erpToken.decimals()).to.be.eq(18);
 		});
 
 		it("should have correct token total supply", async () => {
-			expect(await ERPERC20.totalSupply()).to.be.eq(parseEther("1000000000"));
+			expect(await erpToken.totalSupply()).to.be.eq(parseEther("1000000000"));
 		});
 
 		it("should have correct minter", async () => {
-			expect(await ERPERC20.minter()).to.be.eq(MINTER);
+			expect(await erpToken.minter()).to.be.eq(account.address);
 		});
 
 		it("should have correct account", async () => {
-			expect(await ERPERC20.mintingAllowedAfter()).to.be.eq(MINTINGALLOWEDAFTER);
+			expect(await erpToken.mintingAllowedAfter()).to.be.eq(afterTime);
 		});
 
 		it("should create 1B token to account", async () => {
-			expect(await ERPERC20.balanceOf(ACCOUNT)).to.be.eq(parseEther("1000000000"));
+			expect(await erpToken.balanceOf(account.address)).to.be.eq(parseEther("1000000000"));
 		});
 	});
 
-	describe("setNewMinter function test", async () => {
-		it("should only allow preset minter to change the minter", async () => {
-			await expect(ERPERC20.setNewMinter(wallet2.address)).to.be.reverted;
+	describe("# setMinter", async () => {
+		it("revert with only the minter can change the minter address", async () => {
+			// expect((await erpToken.connect(wallet1).setMinter(wallet1.address))).to.emit(erpToken, "MinterChanged"). withArgs(account.address, wallet2.address);
+			expect(erpToken.connect(wallet2).setMinter(wallet1.address)).to.be.revertedWith(
+				"Erp::setMinter: only the minter can change the minter address"
+			);
 		});
+
+		it (" set new minter", async () => {
+			// console.log("account wallet 1", account.address, wallet1.address)
+			expect(await erpToken.setMinter(wallet1.address)).to.emit(erpToken, "MinterChanged").withArgs(account.address, wallet1.address);
+			expect(await erpToken.minter()).to.be.eq(wallet1.address);
+		})
 	});
+
+	describe(" # mint", async () => {
+		it("revert when non minter mint", async () => {
+			expect(await erpToken.minter()).to.be.eq(account.address);
+			await expect(erpToken.connect(wallet1).mint(wallet1.address, 1)).to.be.revertedWith("Erp::mint: only the minter can mint");
+		})
+		it("revert when mint before aftertime", async () => {
+			await expect(erpToken.mint(wallet1.address, 1)).to.be.revertedWith("Erp::mint: minting not allowed yet");
+		})
+		it("revert when transfer to zero address", async () => {
+			await provider.send("evm_mine", [afterTime])
+			await expect(erpToken.mint(AddressZero, 1)).to.be.revertedWith("Erp::mint: cannot transfer to the zero address");
+		})
+
+		it("revert when amount exceeds", async () => {
+			await provider.send("evm_mine", [afterTime]);
+			await expect(erpToken.mint(wallet1.address, MaxUint256)).to.be.revertedWith("Erp::mint: amount exceeds 96 bits");
+			const baseAmount = parseEther("1000000000")
+			const cap = baseAmount.mul(BigNumber.from(21)).div(BigNumber.from(1000)) // 2.1%
+			await expect(erpToken.mint(wallet1.address, cap)).to.be.revertedWith("Erp::mint: exceeded mint cap");
+		})
+	})
 });

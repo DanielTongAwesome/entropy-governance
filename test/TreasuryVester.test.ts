@@ -1,88 +1,95 @@
-// /*
-//  * @Author: Zitian(Daniel) Tong
-//  * @Date: 2021-07-15 03:30:12
-//  * @LastEditTime: 2021-07-15 03:34:00
-//  * @LastEditors: Zitian(Daniel) Tong
-//  * @Description:
-//  * @FilePath: /entropy-governance/test/TreasuryVester.test.ts
-//  */
+import { ethers, waffle, getNamedAccounts } from "hardhat";
+const { getContractFactory, getSigner } = ethers;
+const {} = waffle;
+import { expect } from "chai";
+import { Contract, BigNumber } from "ethers";
+import { MockProvider, createFixtureLoader, deployContract } from "ethereum-waffle";
+import { mineBlock, expandTo18Decimals } from "./shared/utils";
+import { Entropy, TreasuryVester } from "../types";
+import { v2Fixture } from "./shared/fixtures";
+import { formatEther, parseEther } from "ethers/lib/utils";
 
-// import chai, { expect } from 'chai'
-// import { Contract, BigNumber } from 'ethers'
-// import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
+describe("scenario:TreasuryVester", () => {
+	const provider = new MockProvider({
+		ganacheOptions: {
+			hardfork: "istanbul",
+			mnemonic: "horn horn horn horn horn horn horn horn horn horn horn horn",
+			gasLimit: 999999999999999,
+		},
+	});
 
-// import TreasuryVester from '../artifacts/contracts/TreasuryVester.sol/TreasuryVester.json'
-// import { mineBlock, expandTo18Decimals } from './shared/utils'
+	const [account, wallet1, wallet2] = provider.getWallets();
 
-// chai.use(solidity)
+	const loadFixture = createFixtureLoader([account, wallet1], provider);
 
-// describe('scenario:TreasuryVester', () => {
-//     const provider = new MockProvider({
-//         ganacheOptions: {
-//             hardfork: 'istanbul',
-//             mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-//             gasLimit: 9999999,
-//         },
-//     })
+	const startTime = 1609459200;
 
-//     const [wallet] = provider.getWallets()
-//     const loadFixture = createFixtureLoader([wallet], provider)
+	let treasuryVester: TreasuryVester;
+	let erpToken: Entropy;
+	const vestingAmount = parseEther("100");
+	const vestingBegin = 1627794720;
+	const vestingCliff = vestingBegin + 60;
+	const vestingEnd = 1659330720;
 
-//     let uni: Contract
-//     let timelock: Contract
-//     beforeEach(async () => {
-//         const fixture = await loadFixture(governanceFixture)
-//         uni = fixture.uni
-//         timelock = fixture.timelock
-//     })
+	
 
-//     let treasuryVester: Contract
-//     let vestingAmount: BigNumber
-//     let vestingBegin: number
-//     let vestingCliff: number
-//     let vestingEnd: number
-//     beforeEach('deploy treasury vesting contract', async () => {
-//         const { timestamp: now } = await provider.getBlock('latest')
-//         vestingAmount = expandTo18Decimals(100)
-//         vestingBegin = now + 60
-//         vestingCliff = vestingBegin + 60
-//         vestingEnd = vestingBegin + 60 * 60 * 24 * 365
-//         treasuryVester = await deployContract(wallet, TreasuryVester, [
-//         uni.address,
-//         timelock.address,
-//         vestingAmount,
-//         vestingBegin,
-//         vestingCliff,
-//         vestingEnd,
-//         ])
+	beforeEach(async () => {
+		await provider.send("evm_mine", [startTime]);
+	});
 
-//         // fund the treasury
-//         await uni.transfer(treasuryVester.address, vestingAmount)
-//     })
+	beforeEach(async () => {
+		const fixture = await loadFixture(v2Fixture);
+		treasuryVester = fixture.treasuryVester;
+		erpToken = fixture.erpToken;
+		
+	});
 
-//     it('setRecipient:fail', async () => {
-//         await expect(treasuryVester.setRecipient(wallet.address)).to.be.revertedWith(
-//         'TreasuryVester::setRecipient: unauthorized'
-//         )
-//     })
+	describe("treasuryVester deployed", async () => {
+		it("check variable", async () => {
+			expect(await treasuryVester.erp()).to.be.eq(erpToken.address);
+			expect(await treasuryVester.recipient()).to.be.eq(wallet1.address);
+			expect(await treasuryVester.vestingAmount()).to.be.eq(vestingAmount);
+			expect(await treasuryVester.vestingBegin()).to.be.eq(vestingBegin);
+			expect(await treasuryVester.vestingCliff()).to.be.eq(vestingCliff);
+			expect(await treasuryVester.vestingEnd()).to.be.eq(vestingEnd);
+		})
+		
+	});
 
-//     it('claim:fail', async () => {
-//         await expect(treasuryVester.claim()).to.be.revertedWith('TreasuryVester::claim: not time yet')
-//         await mineBlock(provider, vestingBegin + 1)
-//         await expect(treasuryVester.claim()).to.be.revertedWith('TreasuryVester::claim: not time yet')
-//     })
+	describe(" # setRecipient", async () => {
+		it("revert with unauthorized", async () => {
+			await expect(treasuryVester.connect(wallet2).setRecipient(wallet2.address)).to.be.revertedWith(
+				"TreasuryVester::setRecipient: unauthorized"
+			);
+		});
+		it("set new recipient", async () => {
+			await treasuryVester.connect(wallet1).setRecipient(wallet2.address);
+			expect(await treasuryVester.recipient()).to.be.eq(wallet2.address)
+		})
+	});
 
-//     it('claim:~half', async () => {
-//         await mineBlock(provider, vestingBegin + Math.floor((vestingEnd - vestingBegin) / 2))
-//         await treasuryVester.claim()
-//         const balance = await uni.balanceOf(timelock.address)
-//         expect(vestingAmount.div(2).sub(balance).abs().lte(vestingAmount.div(2).div(10000))).to.be.true
-//     })
+	describe(" # claim", async () => {
+		beforeEach(async() => {
+			await erpToken.transfer(treasuryVester.address, vestingAmount);
+		})
+		it ("revert when claim before vesting cliff", async () => {
+			await expect(treasuryVester.claim()).to.be.revertedWith("TreasuryVester::claim: not time yet")
+		})
 
-//     it('claim:all', async () => {
-//         await mineBlock(provider, vestingEnd)
-//         await treasuryVester.claim()
-//         const balance = await uni.balanceOf(timelock.address)
-//         expect(balance).to.be.eq(vestingAmount)
-//     })
-// })
+		it("claim half ", async () => {
+			// console.log("balance", formatEther(await erpToken.balanceOf(treasuryVester.address)))
+			await provider.send("evm_mine", [vestingBegin + Math.floor((vestingEnd - vestingBegin) / 2)]);
+			await treasuryVester.claim()
+			const balance = await erpToken.balanceOf(wallet1.address)
+			expect(vestingAmount.div(2).sub(balance).abs().lte(vestingAmount.div(2).div(10000))).to.be.true;
+		})
+
+			it("claim all", async () => {
+				await provider.send("evm_mine", [vestingEnd]);
+				await treasuryVester.claim();
+				const balance = await erpToken.balanceOf(wallet1.address);
+				expect(balance).to.be.eq(vestingAmount);
+			});
+	})
+
+});
