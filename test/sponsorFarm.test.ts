@@ -89,7 +89,7 @@ describe(" TEST: EntropySponsorFarm", async () => {
       const blockNo4 = await provider.getBlockNumber();
       await sponsorFarm.connect(wallet1).claim(0);
       expect(await erpToken.balanceOf(wallet1.address)).to.eq(
-					parseEther("0.5").add(
+				(
 						parseEther("10")
 							.mul(blockNo3 - blockNo1)
 							.add(parseEther("5").mul(blockNo4 - blockNo3))
