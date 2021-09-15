@@ -26,7 +26,7 @@ async function main() {
 	console.log(`start deploying Entropy Governance Token`);
 	console.log(`Set the account: 			  ${account}`);
 	console.log(`Set the minter: 			  ${minter}`);
-	console.log(`Set the mintingAllowedAfter: ${timeAfter}`)
+	console.log(`Set the mintingAllowedAfter: ${timeAfter}`);
 	console.log("==========================================================================================\n");
 
 	const EntropyERC20 = await getContractFactory("Entropy");

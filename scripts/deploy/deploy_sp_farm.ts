@@ -16,7 +16,7 @@ import { parseEther } from "ethers/lib/utils";
 async function main() {
 	const chainId = parseInt(await getChainId(), 10);
 	const erp = "0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1";
-	const perBlock = parseEther('20');
+	const perBlock = parseEther("20");
 
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
@@ -25,7 +25,7 @@ async function main() {
 	console.log("\n==========================================================================================");
 	console.log(`start deploying Sponsor Farming Contract`);
 	console.log(`token address: ${erp}`);
-	console.log(`entropy per block: ${perBlock}`)
+	console.log(`entropy per block: ${perBlock}`);
 	console.log("==========================================================================================\n");
 
 	const spFarm = await getContractFactory("EntropySponsorFarm");
