@@ -106,21 +106,24 @@ describe(" TEST: EntropySponsorFarm", async () => {
 
 			// so they should be able to claim those pending rewards
 
-      // expect(await sponsorFarm.connect(wallet1).claim(0))
-			// 	.to.emit(sponsorFarm, "Claim")
-			// 	.withArgs(
-			// 		wallet1.address,
-			// 		0,
-			// 		parseEther("10")
-			// 			.mul(blockNo3 - blockNo1)
-			// 			.add(parseEther("5").mul(blockNo4 - blockNo3))
-			// 	);
+      expect(await sponsorFarm.connect(wallet1).claim(0))
+				.to.emit(sponsorFarm, "Claim")
+				.withArgs(
+					wallet1.address,
+					0,
+					parseEther("10")
+						.mul(blockNo3 - blockNo1)
+						.add(parseEther("5").mul(blockNo4 - blockNo3))
+				);
 
         const blockNo5 = await provider.getBlockNumber();
+        // console.log("4, 5", blockNo4, blockNo5);
 
         expect(await sponsorFarm.connect(wallet2).claim(0))
 					.to.emit(sponsorFarm, "Claim")
 					.withArgs(wallet2.address, 0, parseEther("5").mul(blockNo4 - blockNo3).add(parseEther('10').mul(blockNo5 - blockNo4)));
+
+          
           const blockNo6 = await provider.getBlockNumber();
 
           // expect(await sponsorFarm.connect(wallet2).claim(1))
