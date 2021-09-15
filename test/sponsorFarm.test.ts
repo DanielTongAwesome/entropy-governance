@@ -36,6 +36,7 @@ describe(" TEST: EntropySponsorFarm", async () => {
 		sponsorFarm = fixture.sponsorFarm;
 		testToken0 = fixture.testToken0;
 		testToken1 = fixture.testToken1;
+    await erpToken.transfer(sponsorFarm.address, parseEther("1000"))
 	});
 
 	describe("EntropySponsorFarm deployed", async () => {
@@ -71,59 +72,45 @@ describe(" TEST: EntropySponsorFarm", async () => {
 			// wallet1 deposit 0.5eth to pid 0
 
 			console.log(await provider.getBlockNumber());
-			expect(await sponsorFarm.connect(wallet1).deposit(0, parseEther("0.5")))
-				.emit(sponsorFarm, "Deposit")
-				.withArgs(wallet1.address, 0, parseEther("0.5"));
-			expect(await sponsorFarm.pendingEntropy(0, wallet1.address)).to.be.eq(0);
+      await sponsorFarm.connect(wallet1).deposit(0, parseEther("0.5"));
 			console.log(await provider.getBlockNumber());
 
 			// at blockNumber 1, wallet2 deposit 1eth to pid 1
 			const blockNo1 = await provider.getBlockNumber();
-			expect(await sponsorFarm.connect(wallet2).deposit(1, parseEther("1")))
-				.emit(sponsorFarm, "Deposit")
-				.withArgs(wallet2.address, 1, parseEther("1"));
+      await sponsorFarm.connect(wallet2).deposit(1, parseEther("1"));
 
 			// check for rewards at blockNo2 and also wallet 2 deposit 0.5 eth to pid 0
 			const blockNo2 = await provider.getBlockNumber();
-			expect(await sponsorFarm.pendingEntropy(1, wallet1.address)).to.be.eq(0);
-
-			expect(await sponsorFarm.pendingEntropy(0, wallet1.address)).to.be.eq(parseEther("10").mul(blockNo2 - blockNo1));
 
 			await sponsorFarm.connect(wallet2).deposit(0, parseEther("0.5"));
-			expect(await sponsorFarm.pendingEntropy(0, wallet2.address)).to.be.eq(0);
+
 			const blockNo3 = await provider.getBlockNumber();
 			await provider.send("evm_mine", []);
-
-			// wallet 1 and wallet 2 split the rewards for pid0 from now on form block3 to block4
-			const blockNo4 = await provider.getBlockNumber();
-			expect(await sponsorFarm.pendingEntropy(0, wallet1.address)).to.be.eq(
-				parseEther("10")
-					.mul(blockNo3 - blockNo1)
-					.add(parseEther("5").mul(blockNo4 - blockNo3))
-			);
-			expect(await sponsorFarm.pendingEntropy(0, wallet2.address)).to.be.eq(parseEther("5").mul(blockNo4 - blockNo3));
-			expect(await sponsorFarm.pendingEntropy(1, wallet2.address)).to.be.eq(parseEther("20").mul(blockNo4 - blockNo2));
-
-			// so they should be able to claim those pending rewards
-
-      expect(await sponsorFarm.connect(wallet1).claim(0))
-				.to.emit(sponsorFarm, "Claim")
-				.withArgs(
-					wallet1.address,
-					0,
-					parseEther("10")
-						.mul(blockNo3 - blockNo1)
-						.add(parseEther("5").mul(blockNo4 - blockNo3))
+      const blockNo4 = await provider.getBlockNumber();
+      await sponsorFarm.connect(wallet1).claim(0);
+      expect(await erpToken.balanceOf(wallet1.address)).to.eq(
+					parseEther("0.5").add(
+						parseEther("10")
+							.mul(blockNo3 - blockNo1)
+							.add(parseEther("5").mul(blockNo4 - blockNo3))
+					)
 				);
 
-        const blockNo5 = await provider.getBlockNumber();
-        // console.log("4, 5", blockNo4, blockNo5);
-
-        expect(await sponsorFarm.connect(wallet2).claim(0))
-					.to.emit(sponsorFarm, "Claim")
-					.withArgs(wallet2.address, 0, parseEther("5").mul(blockNo4 - blockNo3).add(parseEther('10').mul(blockNo5 - blockNo4)));
+        // expect(await sponsorFarm.pendingEntropy(0, wallet2.address)).to.be.eq(parseEther("5").mul(blockNo5 - blockNo3));
+        // await sponsorFarm.connect(wallet2).claim(0);
 
           
+
+
+        //   expect(await erpToken.balanceOf(wallet2.address)).to.eq(
+				// 		parseEther("0.5").add(
+				// 			parseEther("5")
+				// 				.mul(blockNo4 - blockNo3)
+				// 				.add(parseEther("5").mul(blockNo5 - blockNo4))
+				// 		)
+				// 	);
+
+        
           const blockNo6 = await provider.getBlockNumber();
 
           // expect(await sponsorFarm.connect(wallet2).claim(1))
