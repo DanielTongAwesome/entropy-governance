@@ -5,6 +5,8 @@ import {
 	EntropySponsorFarm,
 	EntropySponsorFarm__factory,
 	Entropy__factory,
+	TestToken,
+	TestToken__factory,
 	TreasuryVester,
 	TreasuryVester__factory,
 } from "../../types";
@@ -23,6 +25,8 @@ interface EntropyFixture {
 	erpToken: Entropy;
 	treasuryVester: TreasuryVester;
 	sponsorFarm: EntropySponsorFarm;
+	testToken0: TestToken;
+	testToken1: TestToken;
 }
 
 export async function v2Fixture([account, wallet1]: Wallet[], provider: Web3Provider): Promise<EntropyFixture> {
@@ -46,14 +50,20 @@ export async function v2Fixture([account, wallet1]: Wallet[], provider: Web3Prov
 		vestingEnd,
 	])) as TreasuryVester;
 
-	const entropyPerBlock = parseEther("20");
+	const entropyPerBlock = parseEther("30");
 	const sponsorFarm = (await deployContract(account, EntropySponsorFarm__factory, [
 		erpToken.address,
 		entropyPerBlock,
 	])) as EntropySponsorFarm;
+
+	const testToken0 = await deployContract(account, TestToken__factory, []) as TestToken
+	const testToken1 = (await deployContract(account, TestToken__factory, [])) as TestToken;
+
 	return {
 		erpToken,
 		treasuryVester,
 		sponsorFarm,
+		testToken0,
+		testToken1
 	};
 }
