@@ -56,7 +56,7 @@ export async function v2Fixture([account, wallet1]: Wallet[], provider: Web3Prov
 		entropyPerBlock,
 	])) as EntropySponsorFarm;
 
-	const testToken0 = await deployContract(account, TestToken__factory, []) as TestToken
+	const testToken0 = (await deployContract(account, TestToken__factory, [])) as TestToken;
 	const testToken1 = (await deployContract(account, TestToken__factory, [])) as TestToken;
 
 	return {
@@ -64,6 +64,6 @@ export async function v2Fixture([account, wallet1]: Wallet[], provider: Web3Prov
 		treasuryVester,
 		sponsorFarm,
 		testToken0,
-		testToken1
+		testToken1,
 	};
 }
