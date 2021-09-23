@@ -13,16 +13,15 @@ import { chainName } from "../miscs/constants";
 import { BigNumber } from "ethers";
 
 async function main() {
-
 	const chainId = parseInt(await getChainId(), 10);
 
 	const erp = "0xb9FA651d8b269D2822A500A7251AAbC277813fA7";
-	const recipient = "0xfD9656df3E4Dca84C260137AECBA416050aea145"
-	const vestAmount = 100000000
-	const vestBegin = 1627794720
-	const vestClif = 0
-	const vestEnd = 1659330720
-	
+	const recipient = "0xfD9656df3E4Dca84C260137AECBA416050aea145";
+	const vestAmount = 100000000;
+	const vestBegin = 1627794720;
+	const vestClif = 0;
+	const vestEnd = 1659330720;
+
 	console.log("\n==========================================================================================");
 	console.log(`network: ${chainName(chainId)}`);
 	console.log("==========================================================================================\n");

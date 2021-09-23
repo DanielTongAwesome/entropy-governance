@@ -71,6 +71,9 @@ const config = {
 	},
 
 	namedAccounts: {
+		account: {
+			default: ACCOUNT,
+		},
 	},
 
 	etherscan: {
