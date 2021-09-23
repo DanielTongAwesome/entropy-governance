@@ -16,7 +16,7 @@ const overrides = {
 	gasLimit: 999999999999999,
 };
 
-describe("Entropy ERC20 Test", () => {
+describe("Test: Entropy ERC20", () => {
 	const provider = new MockProvider({
 		ganacheOptions: {
 			hardfork: "istanbul",
@@ -50,6 +50,7 @@ describe("Entropy ERC20 Test", () => {
 		it("should have correct token name", async () => {
 			expect(await erpToken.name()).to.be.eq("Entropy");
 		});
+
 		it("should have correct token symbol", async () => {
 			expect(await erpToken.symbol()).to.be.eq("ERP");
 		});
