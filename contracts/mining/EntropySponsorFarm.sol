@@ -108,7 +108,7 @@ contract EntropySponsorFarm is Ownable {
 	// View function to see pending ENTROPYs on frontend.
 	function pendingEntropy(uint256 _pid, address _user) external view validatePoolByPid(_pid) returns (uint256) {
 		PoolInfo memory pool = poolInfo[_pid];
-		UserInfo memory user = userInfo[_pid][_user];
+		UserInfo storage user = userInfo[_pid][_user];
 		uint256 accEntropyPerShare = pool.accEntropyPerShare;
 		uint256 sponsorSupply = sponsorToken[_pid].balanceOf(address(this));
 		if (block.number > pool.lastRewardBlock && sponsorSupply != 0) {
