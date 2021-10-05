@@ -1,7 +1,7 @@
 /*
  * @Author: Zitian(Daniel) Tong
  * @Date: 2021-07-13 22:26:12
- * @LastEditTime: 2021-09-06 12:44:52
+ * @LastEditTime: 2021-10-04 16:49:11
  * @LastEditors: Zitian(Daniel) Tong
  * @Description:
  * @FilePath: /entropy-governance/hardhat.networks.ts
@@ -54,6 +54,15 @@ export const networks: NetworksUserConfig = {
 	rinkeby: {
 		// chainId:
 		url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+		blockGasLimit: 200000000,
+		accounts: {
+			mnemonic: process.env.MNEMONIC,
+		},
+	},
+
+	goerli: {
+		// chainId:
+		url: `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
 		blockGasLimit: 200000000,
 		accounts: {
 			mnemonic: process.env.MNEMONIC,
