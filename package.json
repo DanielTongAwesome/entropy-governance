@@ -20,13 +20,16 @@
 		"deploySPFarm:mumbai": "hardhat run --network matic_mumbai ./scripts/deploy/deploy_sp_farm.ts",
 		"deployLPFarm:mumbai": "hardhat run --network matic_mumbai ./scripts/deploy/deploy_lp_farm.ts",
 		"deployToken:goerli": "hardhat run --network goerli ./scripts/deploy/deploy_token.ts",
+
+		"verifyToken:mainnet": "hardhat verify --network mainnet 0x0a0e3bfd5a8ce610e735d4469bc1b3b130402267 \"0xD4672DF58DF081b8342BAF0386d4fC45660F47dB\" \"0xD4672DF58DF081b8342BAF0386d4fC45660F47dB\" 1665705600",
+
 		"verifyToken:kovan": "hardhat verify --network kovan 0x6ae779CD1df6584D961892dC7b9FcAB77e15d376 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
 		"verifySPFarm:kovan": "hardhat verify --network kovan 0x159e02795eaD816cE0792F932BE7B36444F82dC6 \"0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1\" 20000000000000000000",
 		"verifyLPFarm:kovan": "hardhat verify --network kovan 0x266DC2a0861E5b57636a432Ae5D06D52A6F18ec0 \"0x0bCe57a3B09Cd2Bde97970bEceaEf5990fF386b1\" 20000000000000000000",
 		"verifyToken:mumbai": "hardhat verify --network matic_mumbai 0x775D2b13D9D80e7691Cf9C223567481B2A278755 \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796",
 		"verifySPFarm:mumbai": "hardhat verify --network matic_mumbai 0x35983140e2477F797343f376B59689B94da1a87D \"0x775D2b13D9D80e7691Cf9C223567481B2A278755\" 20000000000000000000",
 		"verifyLPFarm:mumbai": "hardhat verify --network matic_mumbai 0x00788Cb399E19FFEDE72CD85bfafe761001C9507 \"0x775D2b13D9D80e7691Cf9C223567481B2A278755\" 20000000000000000000",
-		"verifyToken:goerli": "hardhat verify --network goerli 0x56BF7ce16E2175679553f80CA92554441a83C43e \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796"
+		"verifyToken:goerli": "hardhat verify --network goerli 0xdE270327e85B7790D4D26618B4994c683d9482cA \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" \"0xfD9656df3E4Dca84C260137AECBA416050aea145\" 1662773796"
 	},
 	"devDependencies": {
 		"@nomiclabs/hardhat-ethers": "^2.0.2",
