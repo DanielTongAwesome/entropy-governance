@@ -14,7 +14,7 @@
 
 # 「 Entropyfi -  Governance Token 」
 
-**_<a href="https://www.entropyfi.com/">WWW.ENTROPYFI.COM</a>_** / ⚡️ Supercharge your yield with your prediction skill.
+**_<a href="https://www.entropyfi.com/">WWW.ENTROPYFI.COM</a>_** / ⚡️ Amplify Yield and Insure Assets with Entropyfi
 
 </div>
 
