@@ -1,5 +1,5 @@
 <!--
- * @Author: Zitian(Daniel) Tong
+ * @Author: Daniel Tong
  * @Date: 2021-07-13 00:31:57
  * @LastEditTime: 2021-07-13 22:54:25
  * @LastEditors: Zitian(Daniel) Tong
@@ -19,43 +19,9 @@
 </div>
 
 
-### Project setup
-1. install all packages
+### Deployed Entropy(ERP) Token
+1. On ETH Mainnet: [0x0a0e3bfD5a8cE610E735D4469Bc1b3b130402267](https://etherscan.io/address/0x0a0e3bfD5a8cE610E735D4469Bc1b3b130402267)
 
-   ```shell
-   ❯ yarn install
-   ```
+2. On Polygon Mainnet: [0x28accA4ed2F6186c3D93e20e29e6e6a9Af656341](https://polygonscan.com/address/0x28accA4ed2F6186c3D93e20e29e6e6a9Af656341)
 
-2. create your own .env file, check out the sample [.env_sample](.env_sample)
-
-   ```shell
-   ❯ touch .env
-   ```
-
-3. to deploy a contract with many dependent files
-   - flattern the .sol file by using
-   ```shell
-   ❯ truffle-flattener <solidity-files>
-   ```
-   - modify [deploy contract](./migrations/2_deploy_contracts.js)
-   - Note: use [abi.hashEX](https://abi.hashex.org/#) to generate ABI-encoded output
-   - deploy command
-   ```shell
-   ❯ npx hardhat run --network kovan ./scripts/deploy.ts
-   ```
-   - verify contract command
-   ```shell
-   ❯ npx hardhat verify --network kovan  CONTRACT_ADDRESS  "INPUT1" "INPUT2" ...
-   ```
-
-### Unit Tests
-> [hardhat](https://hardhat.org/) (with [ethers.js](https://github.com/ethers-io/ethers.js/)) is used for testing.
-
-1. make sure you have compiled our contracts. The build files should locate under folder `artifacts`
-   ```shell
-   ❯ yarn compile
-   ```
-2. run **unit test**
-   ```shell
-   ❯ yarn test
-   ```
+   
