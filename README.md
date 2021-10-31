@@ -19,6 +19,10 @@
 </div>
 
 
+### **Notice Before your trade** 
+
+please double confirm the trading pair info, ERP token address as well as provided liquidity. Entropyfi team supplied 500,000 USDC and Large amount of ERP at the early stage on both Uniswap and Quickswap. 
+
 ### Deployed Entropy(ERP) Token
 1. On ETH Mainnet: [0x0a0e3bfD5a8cE610E735D4469Bc1b3b130402267](https://etherscan.io/address/0x0a0e3bfD5a8cE610E735D4469Bc1b3b130402267)
 
