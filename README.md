@@ -1,11 +1,3 @@
-<!--
- * @Author: Daniel Tong
- * @Date: 2021-07-13 00:31:57
- * @LastEditTime: 2021-07-13 22:54:25
- * @LastEditors: Zitian(Daniel) Tong
- * @Description: 
- * @FilePath: /entropy-governance/README.md
--->
 <a href="https://www.entropyfi.com" target="_blank">
     <img alt="entropyfi" src="https://raw.githubusercontent.com/entropyfi/entropy-resource/master/Entropyfi.svg" width="120px" height=:"120px" align="left">
 </a>
@@ -37,4 +29,18 @@ please double confirm the trading pair info, ERP token address as well as provid
 
 3. Deversifi 
    [Trade Entry](https://app.deversifi.com/trade)
+   
+### Liquidity Lock & Liquidity Vesting Contract
+1. Uniswap (Mainnet) Liquidity Lock Tx:
+   https://etherscan.io/tx/0x0ab68dbb76933adda263a9205ff179ec4bc9a7583ce91a10dfa666dac333295c
+
+2. Quickswap (Polygon) Liquidity Lock Tx:
+   https://polygonscan.com/tx/0xbd3b4c63c5236f703f7ef7dd84bdb8a87582e9c9ca6fb6927195aadd0953991e
+
+3. LPVester Contract Address:
+   [LPVester Mainnet Contract](https://etherscan.io/address/0xc84eb75bA2c20De72C929CC2Fd73B937F8997919)
+   
+4. LPVester Contract Address:
+   [LPVester Polygon Contract](https://polygonscan.com/address/0x02F1410457CEB105Ca8aed71b7654FB05CB61417)
+
 
