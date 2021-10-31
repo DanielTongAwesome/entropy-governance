@@ -7,13 +7,13 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract TreasuryVester {
 	using SafeMath for uint256;
 
-	address public erp;
+	address public erp; //  0x0a0e3bfD5a8cE610E735D4469Bc1b3b130402267  ETH MAINNET
 	address public recipient;
 
-	uint256 public vestingAmount;
-	uint256 public vestingBegin;
-	uint256 public vestingCliff;
-	uint256 public vestingEnd;
+	uint256 public vestingAmount; 
+	uint256 public vestingBegin;  // 1632141600
+	uint256 public vestingCliff;  // 1635645600
+	uint256 public vestingEnd;  // 1667181600
 
 	uint256 public lastUpdate;
 
@@ -27,8 +27,8 @@ contract TreasuryVester {
 	) {
 		require(erp_ != address(0), "TreasuryVester::constructor: rep token zero address");
 		require(recipient_ != address(0), "TreasuryVester::constructor: recipient zero address");
-		require(vestingBegin_ >= block.timestamp, "TreasuryVester::constructor: vesting begin too early");
-		require(vestingCliff_ >= vestingBegin_, "TreasuryVester::constructor: cliff is too early");
+ 		require(vestingBegin_ < block.timestamp, "TreasuryVester::constructor: vesting begin too late");
+		require(vestingCliff_ > vestingBegin_, "TreasuryVester::constructor: cliff is too early");
 		require(vestingEnd_ > vestingCliff_, "TreasuryVester::constructor: end is too early");
 
 		erp = erp_;
