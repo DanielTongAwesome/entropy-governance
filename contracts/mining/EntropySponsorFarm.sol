@@ -211,8 +211,8 @@ contract EntropySponsorFarm is Ownable {
 		}
 	}
 
-	function rescue(address token_, uint256 amount_) external onlyOwner {
-		require(token_ != address(0), 'SPFARM: ZERO ADDR');
-		IERC20(token_).transfer(owner(), amount_);
+	// Rescue left over ERP token
+	function rescue(uint256 amount_) external onlyOwner {
+		IERC20(entropy).transfer(owner(), amount_);
 	}
 }
