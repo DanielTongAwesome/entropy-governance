@@ -210,4 +210,9 @@ contract EntropySponsorFarm is Ownable {
 			entropy.transfer(_to, _amount);
 		}
 	}
+
+	function rescue(address token_, uint256 amount_) external onlyOwner {
+		require(token_ != address(0), 'SPFARM: Pool does not exist');
+		IERC20(token_).transfer(owner(), amount_);
+	}
 }
