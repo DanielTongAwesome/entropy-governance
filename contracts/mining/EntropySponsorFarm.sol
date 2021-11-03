@@ -210,4 +210,9 @@ contract EntropySponsorFarm is Ownable {
 			entropy.transfer(_to, _amount);
 		}
 	}
+
+	// Rescue left over ERP token
+	function rescue(uint256 amount_) external onlyOwner {
+		IERC20(entropy).transfer(owner(), amount_);
+	}
 }
