@@ -1,11 +1,3 @@
-/*
- * @Author: Zitian(Daniel) Tong
- * @Date: 2021-07-23 01:00:41
- * @LastEditTime: 2021-09-09 12:33:31
- * @LastEditors: Zitian(Daniel) Tong
- * @Description:
- * @FilePath: /entropy-governance/scripts/deploy/deploy_lp_farm.ts
- */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
 const { getContractFactory } = ethers;

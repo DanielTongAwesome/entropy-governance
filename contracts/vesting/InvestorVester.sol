@@ -27,7 +27,7 @@ contract InvestorVester {
 	) {
 		require(erp_ != address(0), "TreasuryVester::constructor: rep token zero address");
 		require(recipient_ != address(0), "TreasuryVester::constructor: recipient zero address");
-    require(vestingBegin_ >= block.timestamp, "TreasuryVester::constructor: vesting begin too early");
+        require(vestingBegin_ >= block.timestamp, "TreasuryVester::constructor: vesting begin too early");
 		require(vestingCliff_ >= vestingBegin_, "TreasuryVester::constructor: cliff is too early");
 		require(vestingEnd_ > vestingCliff_, "TreasuryVester::constructor: end is too early");
 

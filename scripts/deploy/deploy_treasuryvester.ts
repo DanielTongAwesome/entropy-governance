@@ -1,11 +1,3 @@
-/*
- * @Author: Zitian(Daniel) Tong
- * @Date: 2021-07-15 01:07:24
- * @LastEditTime: 2021-09-09 12:36:25
- * @LastEditors: Zitian(Daniel) Tong
- * @Description:
- * @FilePath: /entropy-governance/scripts/deploy/deploy_treasuryvester.ts
- */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
 const { getContractFactory } = ethers;

@@ -1,11 +1,3 @@
-/*
- * @Author: Zitian(Daniel) Tong
- * @Date: 2021-07-13 22:37:34
- * @LastEditTime: 2021-09-09 12:04:27
- * @LastEditors: Zitian(Daniel) Tong
- * @Description:
- * @FilePath: /entropy-governance/scripts/deploy/deploy_token.ts
- */
 import hre from "hardhat";
 const { ethers, getChainId, waffle, getNamedAccounts } = hre;
 const { getContractFactory } = ethers;

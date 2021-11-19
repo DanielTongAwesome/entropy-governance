@@ -1,11 +1,3 @@
-/*
- * @Author: Zitian(Daniel) Tong
- * @Date: 2021-07-13 22:26:12
- * @LastEditTime: 2021-10-04 16:49:11
- * @LastEditors: Zitian(Daniel) Tong
- * @Description:
- * @FilePath: /entropy-governance/hardhat.networks.ts
- */
 import { NetworksUserConfig } from "hardhat/types";
 
 require("dotenv").config({ path: require("find-config")("./.env") });
